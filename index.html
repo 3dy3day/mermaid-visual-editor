@@ -2307,18 +2307,31 @@ document.getElementById('shapePanel').addEventListener('transitionend', () => {
 
                     // For double arrows, adjust both ends
                     if (conn.style === 'double') {
-                        const arrowOffset = 5; // Offset for arrow visibility
+                        const arrowOffset = 10; // Offset for arrow visibility
                         const dx = endPoint.x - startPoint.x;
                         const dy = endPoint.y - startPoint.y;
                         const length = Math.sqrt(dx * dx + dy * dy);
                         const unitX = dx / length;
                         const unitY = dy / length;
                         
+                        // Move start point inward (away from start arrow)
                         adjustedStartPoint.x = startPoint.x + unitX * arrowOffset;
                         adjustedStartPoint.y = startPoint.y + unitY * arrowOffset;
+                        // Move end point inward (away from end arrow)
                         adjustedEndPoint.x = endPoint.x - unitX * arrowOffset;
                         adjustedEndPoint.y = endPoint.y - unitY * arrowOffset;
-                    }  
+                    } else if (conn.style === 'arrow') {
+                        // For single arrows, only adjust the end point
+                        const arrowOffset = 8;
+                        const dx = endPoint.x - startPoint.x;
+                        const dy = endPoint.y - startPoint.y;
+                        const length = Math.sqrt(dx * dx + dy * dy);
+                        const unitX = dx / length;
+                        const unitY = dy / length;
+                        
+                        adjustedEndPoint.x = endPoint.x - unitX * arrowOffset;
+                        adjustedEndPoint.y = endPoint.y - unitY * arrowOffset;
+                    }
 
                     // Create group for connection
                     const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
