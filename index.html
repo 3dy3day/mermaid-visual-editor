@@ -12,12 +12,58 @@
             box-sizing: border-box;
         }
         
+        :root {
+            /* Dark theme (default) */
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #252526;
+            --bg-tertiary: #1e1e1e;
+            --bg-hover: #3c3c3c;
+            --bg-active: #505050;
+            --border-color: #3e3e42;
+            --border-hover: #464647;
+            --text-primary: #fff;
+            --text-secondary: #cccccc;
+            --text-tertiary: #999;
+            --accent-primary: #007acc;
+            --accent-hover: #40a9ff;
+            --grid-color: rgba(255,255,255,0.1);
+            --node-shadow: rgba(0,0,0,0.3);
+            --connection-color: #999;
+            --code-bg: #1e1e1e;
+            --code-text: #d4d4d4;
+            --canvas-bg: #1e1e1e;
+        }
+        
+        body.light-mode {
+            /* Light theme */
+            --bg-primary: #f5f5f5;
+            --bg-secondary: #fafafa;
+            --bg-tertiary: #fafafa;
+            --bg-hover: #f0f0f0;
+            --bg-active: #e0e0e0;
+            --border-color: #e0e0e0;
+            --border-hover: #d0d0d0;
+            --text-primary: #1a1a1a;
+            --text-secondary: #333333;
+            --text-tertiary: #666666;
+            --accent-primary: #0066cc;
+            --accent-hover: #0052cc;
+            --grid-color: rgba(0,0,0,0.05);
+            --node-shadow: rgba(0,0,0,0.1);
+            --connection-color: #666;
+            --code-bg: #ffffff;
+            --code-text: #333;
+            --canvas-bg: #f8f8f8;
+            --preview-bg: #ffffff;
+        }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #1a1a1a;
-            color: #fff;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             overflow: hidden;
             height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
         }
         
         .app-container {
@@ -29,18 +75,19 @@
         /* Top Toolbar */
         .toolbar {
             height: 48px;
-            background: #252526;
-            border-bottom: 1px solid #3e3e42;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             padding: 0 16px;
             gap: 8px;
+            transition: background-color 0.3s, border-color 0.3s;
         }
         
         .tool-button {
-            background: #3c3c3c;
-            border: 1px solid #464647;
-            color: #cccccc;
+            background: var(--bg-hover);
+            border: 1px solid var(--border-hover);
+            color: var(--text-secondary);
             padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
@@ -48,19 +95,44 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
         
         .tool-button:hover {
-            background: #505050;
-            color: #fff;
+            background: var(--bg-active);
+            color: var(--text-primary);
         }
         
         .tool-separator {
             width: 1px;
             height: 24px;
-            background: #3e3e42;
+            background: var(--border-color);
             margin: 0 8px;
+        }
+        
+        /* Theme Toggle */
+        .theme-toggle {
+            margin-left: auto;
+            background: var(--bg-hover);
+            border: 1px solid var(--border-hover);
+            border-radius: 20px;
+            padding: 4px;
+            display: flex;
+            gap: 4px;
+            cursor: pointer;
+        }
+        
+        .theme-option {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            color: var(--text-tertiary);
+            transition: all 0.2s;
+        }
+        
+        .theme-option.active {
+            background: var(--accent-primary);
+            color: white;
         }
         
         /* Main Content */
@@ -74,16 +146,49 @@
         /* Shape Panel */
         .shape-panel {
             width: 200px;
-            background: #252526;
-            border-right: 1px solid #3e3e42;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
             overflow-y: auto;
             flex-shrink: 0;
+            transition: all 0.3s;
+        }
+        
+        .shape-panel.collapsed {
+            width: 0;
+            overflow: hidden;
+        }
+        
+        .panel-toggle {
+            position: absolute;
+            left: 200px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 48px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+        
+        .panel-toggle:hover {
+            background: var(--bg-hover);
+        }
+        
+        .shape-panel.collapsed ~ .panel-toggle {
+            left: 0;
         }
         
         .panel-header {
             padding: 16px;
-            background: #007acc;
-            border-bottom: 1px solid #3e3e42;
+            background: var(--accent-primary);
+            border-bottom: 1px solid var(--border-color);
             color: white;
         }
         
@@ -94,26 +199,26 @@
         
         .panel-header p {
             font-size: 11px;
-            color: #999;
+            color: rgba(255,255,255,0.8);
             margin-top: 4px;
         }
         
         .shape-section {
             padding: 16px;
-            border-bottom: 1px solid #3e3e42;
+            border-bottom: 1px solid var(--border-color);
             overflow: visible;
         }
         
         .section-title {
             font-size: 12px;
-            color: white;
+            color: var(--text-primary);
             margin-bottom: 12px;
             text-transform: uppercase;
             font-weight: 600;
-            background: #3c3c3c;
+            background: var(--bg-hover);
             padding: 6px 10px;
             margin: -16px -16px 12px -16px;
-            border-bottom: 1px solid #007acc;
+            border-bottom: 1px solid var(--accent-primary);
         }
         
         .shape-grid {
@@ -125,8 +230,8 @@
         
         .shape-item {
             aspect-ratio: 1;
-            background: #3c3c3c;
-            border: 2px solid #464647;
+            background: var(--bg-hover);
+            border: 2px solid var(--border-hover);
             border-radius: 4px;
             cursor: move;
             display: flex;
@@ -138,9 +243,15 @@
         }
         
         .shape-item:hover {
-            background: #007acc;
-            border-color: #40a9ff;
+            background: var(--accent-primary);
+            border-color: var(--accent-hover);
             transform: scale(1.05);
+        }
+        
+        .shape-item.selected {
+            background: var(--accent-primary);
+            border-color: var(--accent-hover);
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
         }
         
         .shape-item.dragging {
@@ -153,8 +264,8 @@
             bottom: -25px;
             left: 50%;
             transform: translateX(-50%);
-            background: #333;
-            color: white;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
             padding: 4px 8px;
             border-radius: 3px;
             font-size: 10px;
@@ -163,6 +274,7 @@
             transition: opacity 0.2s;
             pointer-events: none;
             z-index: 100;
+            border: 1px solid var(--border-color);
         }
         
         .shape-item:hover::after {
@@ -172,7 +284,7 @@
         .shape-preview {
             width: 50%;
             height: 35%;
-            background: white;
+            background: var(--text-primary);
             border-radius: 2px;
             pointer-events: none;
         }
@@ -186,7 +298,7 @@
         }
         
         .shape-preview.subroutine {
-            border: 3px double white;
+            border: 3px double var(--text-primary);
             background: transparent;
             width: 60%;
             height: 40%;
@@ -224,6 +336,8 @@
             flex: 1;
             display: flex;
             min-width: 0;
+            transition: all 0.3s ease;
+            position: relative;
         }
         
         /* Editor Area */
@@ -232,86 +346,121 @@
             display: flex;
             min-width: 0;
             position: relative;
+            gap: 8px; /* Small gap to prevent overlap */
+            overflow: hidden;
         }
         
         /* Resize Handle */
         .resize-handle {
-            position: absolute;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            width: 8px;
+            width: 16px;
             background: transparent;
             cursor: ew-resize;
-            z-index: 100;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
             transition: background 0.2s;
         }
         
         .resize-handle:hover {
-            background: #007acc;
+            background: var(--bg-hover);
         }
         
         .resize-handle::before {
             content: '';
             position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 2px;
-            height: 40px;
-            background: #464647;
-            border-radius: 1px;
+            width: 3px;
+            height: 60px;
+            background: var(--border-color);
+            border-radius: 3px;
+            transition: all 0.2s;
+        }
+        
+        .resize-handle:hover::before {
+            background: var(--accent-primary);
+            height: 80px;
+        }
+        
+        .resize-handle::after {
+            content: '⋮';
+            position: absolute;
+            color: var(--text-tertiary);
+            font-size: 18px;
+            font-weight: bold;
             opacity: 0;
             transition: opacity 0.2s;
         }
         
-        .resize-handle:hover::before {
+        .resize-handle:hover::after {
             opacity: 1;
         }
         
         .canvas-container {
             flex: 1;
-            background: #1e1e1e;
+            background: var(--canvas-bg);
             position: relative;
             overflow: auto;
-            margin: 16px;
-            margin-right: 0;
+            margin: 16px 12px 16px 16px; /* Better spacing to prevent overlap */
             border-radius: 8px;
+            transition: background-color 0.3s;
+            min-width: 350px; /* Increased minimum width */
+            max-width: calc(100% - 28px); /* Ensure it doesn't exceed container */
         }
         
         /* Modern Scrollbar Styles */
-        .canvas-container::-webkit-scrollbar {
+        .canvas-container::-webkit-scrollbar,
+        .shape-panel::-webkit-scrollbar,
+        .properties-panel::-webkit-scrollbar {
             width: 12px;
             height: 12px;
         }
         
-        .canvas-container::-webkit-scrollbar-track {
-            background: #1e1e1e;
+        /* スクロールバーコーナーを非表示にする */
+        .canvas-container::-webkit-scrollbar-corner,
+        .shape-panel::-webkit-scrollbar-corner,
+        .properties-panel::-webkit-scrollbar-corner {
+            background: transparent;
+            display: none;
+        }
+
+        /* Firefox用 */
+        .canvas-container,
+        .shape-panel,
+        .properties-panel {
+            scrollbar-color: var(--border-hover) transparent;
+            scrollbar-width: thin;
+        }
+
+        .canvas-container::-webkit-scrollbar-track,
+        .shape-panel::-webkit-scrollbar-track,
+        .properties-panel::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
             border-radius: 8px;
         }
         
-        .canvas-container::-webkit-scrollbar-thumb {
-            background: #464647;
+        .canvas-container::-webkit-scrollbar-thumb,
+        .shape-panel::-webkit-scrollbar-thumb,
+        .properties-panel::-webkit-scrollbar-thumb {
+            background: var(--border-hover);
             border-radius: 8px;
-            border: 2px solid #1e1e1e;
+            border: 2px solid var(--bg-tertiary);
         }
         
-        .canvas-container::-webkit-scrollbar-thumb:hover {
-            background: #5c5c5d;
-        }
-        
-        .canvas-container::-webkit-scrollbar-corner {
-            background: #1e1e1e;
+        .canvas-container::-webkit-scrollbar-thumb:hover,
+        .shape-panel::-webkit-scrollbar-thumb:hover,
+        .properties-panel::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
         }
         
         #canvas {
             position: relative;
             width: 2000px;
             height: 2000px;
-            background-image: 
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-image: radial-gradient(circle, var(--grid-color) 1px, transparent 1px);
             background-size: 20px 20px;
+            transition: background-image 0.3s;
+            background-color: transparent;
         }
         
         #connectionSvg {
@@ -334,7 +483,7 @@
             min-width: 120px;
             min-height: 60px;
             padding: 16px 24px;
-            background: #007acc;
+            background: var(--accent-primary);
             color: white;
             display: flex;
             align-items: center;
@@ -344,7 +493,7 @@
             font-size: 14px;
             font-weight: 500;
             transition: transform 0.15s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px var(--node-shadow);
             text-align: center;
             z-index: 10;
         }
@@ -354,8 +503,20 @@
         }
         
         .node.selected {
-            outline: 2px solid #40a9ff;
+            outline: 2px solid var(--accent-hover);
             outline-offset: 4px;
+        }
+        
+        /* For nodes inside wrappers, don't show the regular outline */
+        .node-wrapper .node.selected {
+            outline: none;
+        }
+        
+        /* Override the default outline for clip-path shapes to show shape-specific outlines */
+        .node.hexagon.selected,
+        .node.trapezoid.selected,
+        .node.trapezoid-alt.selected {
+            outline: none;
         }
         
         .node.rectangle {
@@ -382,7 +543,7 @@
             min-height: 100px;
         }
         
-        .node.diamond span {
+        .node.diamond .node-text {
             transform: rotate(-45deg);
         }
         
@@ -391,11 +552,39 @@
             min-width: 140px;
         }
         
+        /* Selection outline for hexagon - works for both wrapped and unwrapped */
+        .node-wrapper.selected .node.hexagon,
+        .node.hexagon.selected {
+            position: relative;
+        }
+        
+        .node-wrapper.selected .node.hexagon::after,
+        .node.hexagon.selected::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            background: transparent;
+            border: 3px solid var(--accent-hover) !important;
+            clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
+            pointer-events: none;
+            z-index: 100;
+            border-radius: 0;
+        }
+        
+        /* Remove rectangular outline from wrapper - let shape-specific outlines handle it */
+        .node-wrapper.selected {
+            /* No outline here - individual shapes handle their own outlines */
+            outline: none !important;
+        }
+        
         .node.parallelogram {
             transform: skewX(-20deg);
         }
         
-        .node.parallelogram span {
+        .node.parallelogram .node-text {
             transform: skewX(20deg);
         }
         
@@ -403,13 +592,74 @@
             clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
         }
         
+        /* Selection outline for trapezoid (manual process) - works for both wrapped and unwrapped */
+        .node-wrapper.selected .node.trapezoid,
+        .node.trapezoid.selected {
+            position: relative;
+        }
+        
+        .node-wrapper.selected .node.trapezoid::after,
+        .node.trapezoid.selected::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            background: transparent;
+            border: 3px solid var(--accent-hover) !important;
+            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+            pointer-events: none;
+            z-index: 100;
+        }
+        
         .node.trapezoid-alt {
             clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
+        }
+        
+        /* Selection outline for trapezoid-alt (manual input) - works for both wrapped and unwrapped */
+        .node-wrapper.selected .node.trapezoid-alt,
+        .node.trapezoid-alt.selected {
+            position: relative;
+        }
+        
+        .node-wrapper.selected .node.trapezoid-alt::after,
+        .node.trapezoid-alt.selected::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            background: transparent;
+            border: 3px solid var(--accent-hover) !important;
+            clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
+            pointer-events: none;
+            z-index: 100;
         }
         
         .node.cylinder {
             border-radius: 50%/20%;
             min-height: 80px;
+        }
+        
+        /* Node Text Editing */
+        .node-text {
+            outline: none;
+            background: transparent;
+            border: none;
+            color: inherit;
+            font: inherit;
+            text-align: center;
+            width: 100%;
+            cursor: move;
+        }
+        
+        .node-text.editing {
+            cursor: text;
+            background: rgba(255,255,255,0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
         }
         
         /* Node Controls */
@@ -448,14 +698,93 @@
             transform: scale(1.1);
         }
         
-        /* Special handling for transformed nodes */
-        .node.diamond .node-controls {
+        /* Fix positions for transformed nodes */
+        .node.diamond .node-controls,
+        .node.diamond .connection-point {
             transform: rotate(-45deg);
-            transform-origin: center;
         }
         
-        .node.parallelogram .node-controls {
+        .node.parallelogram .node-controls,
+        .node.parallelogram .connection-point {
             transform: skewX(20deg);
+        }
+
+        /* Node wrapper for clip-path shapes */
+        .node-wrapper {
+            position: absolute;
+            z-index: 10;
+            min-width: 120px;
+            min-height: 60px;
+        }
+
+        /* Selection for wrapped nodes - don't add outline here, let shape-specific styles handle it */
+        .node-wrapper.selected {
+            position: relative;
+            outline: none !important;
+        }
+
+        .node-wrapper .node {
+            position: relative !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* Connection points positioning for wrapped nodes */
+        .node-wrapper .connection-point {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--accent-hover);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            cursor: crosshair;
+            opacity: 0;
+            transition: opacity 0.15s;
+            z-index: 20;
+        }
+        
+        .node-wrapper:hover .connection-point {
+            opacity: 1;
+        }
+        
+        .node-wrapper .connection-point.top {
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .node-wrapper .connection-point.right {
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .node-wrapper .connection-point.bottom {
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .node-wrapper .connection-point.left {
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        /* Controls positioning for wrapped nodes */
+        .node-wrapper .node-controls {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            display: none;
+            gap: 4px;
+            z-index: 30;
+        }
+        
+        .node-wrapper:hover .node-controls {
+            display: flex;
         }
         
         /* Connection Points */
@@ -463,7 +792,7 @@
             position: absolute;
             width: 12px;
             height: 12px;
-            background: #40a9ff;
+            background: var(--accent-hover);
             border: 2px solid #fff;
             border-radius: 50%;
             cursor: crosshair;
@@ -505,27 +834,34 @@
             width: 50%;
             display: flex;
             flex-direction: column;
-            padding: 16px;
-            padding-left: 0;
-            min-width: 300px;
+            padding: 16px 24px 16px 16px; /* Proper spacing for all screen sizes */
+            min-width: 350px; /* Increased minimum width for better layout */
+            max-width: 60%; /* Prevent taking too much space on large screens */
+            flex-shrink: 1; /* Allow shrinking when needed */
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
         }
         
         .preview-container {
             flex: 1;
-            background: #252526;
+            background: var(--bg-secondary);
             border-radius: 8px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             margin-bottom: 16px;
+            transition: background-color 0.3s;
+            border: 1px solid var(--border-color);
         }
         
         .preview-header {
             padding: 12px 16px;
-            background: #1e1e1e;
-            border-bottom: 1px solid #3e3e42;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
             font-size: 13px;
             font-weight: 500;
+            transition: background-color 0.3s, border-color 0.3s;
         }
         
         .preview-content {
@@ -536,6 +872,7 @@
             align-items: center;
             justify-content: center;
             min-height: 300px;
+            background: var(--preview-bg, var(--bg-secondary));
         }
         
         #mermaidPreview {
@@ -582,32 +919,36 @@
         }
         
         .code-container {
-            background: #1e1e1e;
+            background: var(--bg-secondary);
             border-radius: 8px;
             overflow: hidden;
+            transition: background-color 0.3s;
+            border: 1px solid var(--border-color);
         }
         
         .code-header {
             padding: 8px 16px;
-            background: #252526;
-            border-bottom: 1px solid #3e3e42;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
             font-size: 12px;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: background-color 0.3s, border-color 0.3s;
         }
         
         .code-editor {
             padding: 16px;
             font-family: 'Consolas', 'Monaco', monospace;
             font-size: 13px;
-            color: #d4d4d4;
+            color: var(--code-text);
             overflow: auto;
             white-space: pre;
             height: 300px;
             max-height: 300px;
-            background: #1e1e1e;
+            background: var(--code-bg);
+            transition: background-color 0.3s, color 0.3s;
         }
         
         .code-container.collapsed .code-editor {
@@ -617,36 +958,38 @@
         /* Properties Panel */
         .properties-panel {
             width: 280px;
-            background: #252526;
-            border-left: 1px solid #3e3e42;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
             overflow-y: auto;
             flex-shrink: 0;
+            transition: background-color 0.3s, border-color 0.3s;
         }
         
         .property-group {
             padding: 16px;
-            border-bottom: 1px solid #3e3e42;
+            border-bottom: 1px solid var(--border-color);
         }
         
         .property-label {
             font-size: 12px;
-            color: #999;
+            color: var(--text-tertiary);
             margin-bottom: 6px;
         }
         
         .property-input {
             width: 100%;
             padding: 8px;
-            background: #3c3c3c;
-            border: 1px solid #464647;
-            color: #fff;
+            background: var(--bg-hover);
+            border: 1px solid var(--border-hover);
+            color: var(--text-primary);
             border-radius: 4px;
             font-size: 13px;
+            transition: all 0.2s;
         }
         
         .property-input:focus {
             outline: none;
-            border-color: #007acc;
+            border-color: var(--accent-primary);
         }
         
         .color-grid {
@@ -670,15 +1013,44 @@
         }
         
         .color-option.selected {
-            border-color: #fff;
+            border-color: var(--text-primary);
+        }
+        
+        /* Connection Properties */
+        .connection-style-options {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .style-option {
+            flex: 1;
+            padding: 8px;
+            background: var(--bg-hover);
+            border: 1px solid var(--border-hover);
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .style-option:hover {
+            background: var(--bg-active);
+        }
+        
+        .style-option.selected {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
         }
         
         /* Subgraph */
         .subgraph {
             position: absolute;
-            border: 2px dashed #666;
+            border: 2px dashed var(--text-tertiary);
             border-radius: 8px;
-            background: rgba(255,255,255,0.05);
+            background: rgba(128,128,128,0.05);
             padding: 32px 16px 16px 16px;
             min-width: 250px;
             min-height: 200px;
@@ -687,7 +1059,7 @@
         }
         
         .subgraph.selected {
-            border-color: #40a9ff;
+            border-color: var(--accent-hover);
             background: rgba(64,169,255,0.1);
         }
         
@@ -696,11 +1068,19 @@
             top: 8px;
             left: 16px;
             font-size: 14px;
-            color: #fff;
+            color: var(--text-primary);
             font-weight: 600;
-            background: #3c3c3c;
-            padding: 4px 12px;
+            background: transparent;
+            border: none;
+            outline: none;
+            cursor: move;
+            padding: 4px 8px;
             border-radius: 4px;
+        }
+        
+        .subgraph-title.editing {
+            background: var(--bg-hover);
+            cursor: text;
         }
         
         .subgraph-delete {
@@ -739,6 +1119,12 @@
             height: 20px;
             cursor: se-resize;
             background: transparent;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .subgraph:hover .subgraph-resize {
+            opacity: 1;
         }
         
         .subgraph-resize::after {
@@ -750,21 +1136,21 @@
             height: 0;
             border-style: solid;
             border-width: 0 0 10px 10px;
-            border-color: transparent transparent #666 transparent;
+            border-color: transparent transparent var(--text-tertiary) transparent;
         }
         
         .subgraph:hover .subgraph-resize::after {
-            border-color: transparent transparent #40a9ff transparent;
+            border-color: transparent transparent var(--accent-hover) transparent;
         }
         
         .creating-subgraph {
-            border: 2px dashed #40a9ff;
+            border: 2px dashed var(--accent-hover);
             background: rgba(64,169,255,0.1);
             pointer-events: none;
         }
         
         .connection-line {
-            stroke: #999;
+            stroke: var(--connection-color);
             stroke-width: 2;
             fill: none;
             transition: stroke 0.15s;
@@ -773,8 +1159,30 @@
         }
         
         .connection-line:hover {
-            stroke: #40a9ff;
+            stroke: var(--accent-hover);
             stroke-width: 3;
+        }
+        
+        .connection-line.dotted {
+            stroke-dasharray: 5,5;
+        }
+        
+        .connection-label {
+            fill: var(--text-primary);
+            font-size: 12px;
+            font-weight: 500;
+            text-anchor: middle;
+            pointer-events: none;
+            background: var(--bg-primary);
+            padding: 2px 4px;
+        }
+        
+        .connection-label-bg {
+            fill: var(--bg-primary);
+            stroke: var(--border-color);
+            stroke-width: 1;
+            rx: 3;
+            ry: 3;
         }
         
         .connection-delete-btn {
@@ -806,7 +1214,7 @@
         }
         
         .temp-connection {
-            stroke: #40a9ff;
+            stroke: var(--accent-hover);
             stroke-width: 2;
             stroke-dasharray: 5,5;
             fill: none;
@@ -827,12 +1235,13 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: #2d2d30;
-            border: 1px solid #3e3e42;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 24px;
             z-index: 1000;
             box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            transition: background-color 0.3s, border-color 0.3s;
         }
         
         .modal-backdrop {
@@ -852,9 +1261,9 @@
         
         .direction-btn {
             padding: 12px;
-            background: #3c3c3c;
-            border: 1px solid #464647;
-            color: #fff;
+            background: var(--bg-hover);
+            border: 1px solid var(--border-hover);
+            color: var(--text-primary);
             border-radius: 4px;
             cursor: pointer;
             font-size: 13px;
@@ -862,14 +1271,26 @@
         }
         
         .direction-btn:hover {
-            background: #505050;
+            background: var(--bg-active);
         }
         
         .direction-btn.selected {
-            background: #007acc;
-            border-color: #007acc;
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
         }
-    </style>
+    
+/* === Custom fixes 2025-08-03 === */
+.preview-area { margin-right: 16px; }
+.node-wrapper { overflow: visible; }
+/* Disable resize handle completely */
+.resize-handle { display: none !important; }
+/* Ensure outlines for clip‑path shapes render above other elements */
+.node.hexagon::after,
+.node.trapezoid::after,
+.node.trapezoid-alt::after { pointer-events: none; }
+/* ================================= */
+</style>
 </head>
 <body>
     <div class="app-container">
@@ -892,11 +1313,17 @@
             <button class="tool-button" onclick="exportSVG()">
                 <span style="opacity: 0.7;">↓</span> Export SVG
             </button>
+            
+            <!-- Theme Toggle -->
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <div class="theme-option dark-option active">Dark</div>
+                <div class="theme-option light-option">Light</div>
+            </div>
         </div>
         
         <div class="main-content">
             <!-- Shape Panel -->
-            <div class="shape-panel">
+            <div class="shape-panel" id="shapePanel">
                 <div class="panel-header">
                     <h3>Shape Palette</h3>
                     <p>Drag to canvas</p>
@@ -946,6 +1373,11 @@
                 </div>
             </div>
             
+            <!-- Panel Toggle -->
+            <div class="panel-toggle" onclick="togglePanel()">
+                <span id="panelToggleIcon">◀</span>
+            </div>
+            
             <!-- Workspace -->
             <div class="workspace">
                 <div class="editor-area">
@@ -957,7 +1389,6 @@
                     </div>
                     
                     <!-- Resize Handle -->
-                    <div class="resize-handle" id="resizeHandle"></div>
                     
                     <!-- Preview -->
                     <div class="preview-area">
@@ -982,7 +1413,7 @@
                 <div class="properties-panel">
                     <div class="property-group">
                         <div class="section-title">Selected Element</div>
-                        <div id="selectedInfo" style="color: #666; font-size: 12px;">None</div>
+                        <div id="selectedInfo" style="color: var(--text-tertiary); font-size: 12px;">None</div>
                     </div>
                     
                     <div class="property-group" id="nodeProperties" style="display: none;">
@@ -1000,9 +1431,27 @@
                         </div>
                         
                         <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
-                            <input type="color" id="colorPicker" value="#007acc" style="width: 50px; height: 36px; border: 1px solid #464647; border-radius: 4px; cursor: pointer; background: #3c3c3c;" onchange="setNodeColor(this.value)">
-                            <input type="text" id="colorInput" placeholder="#000000" style="flex: 1; padding: 8px 10px; background: #3c3c3c; border: 1px solid #464647; color: #fff; border-radius: 4px; font-size: 14px; font-family: 'Consolas', 'Monaco', monospace; font-weight: 500;" onkeyup="handleColorInput(event)">
+                            <input type="color" id="colorPicker" value="#007acc" style="width: 50px; height: 36px; border: 1px solid var(--border-hover); border-radius: 4px; cursor: pointer; background: var(--bg-hover);" onchange="setNodeColor(this.value)">
+                            <input type="text" id="colorInput" placeholder="#000000" style="flex: 1; padding: 8px 10px; background: var(--bg-hover); border: 1px solid var(--border-hover); color: var(--text-primary); border-radius: 4px; font-size: 14px; font-family: 'Consolas', 'Monaco', monospace; font-weight: 500;" onkeyup="handleColorInput(event)">
                         </div>
+                    </div>
+                    
+                    <div class="property-group" id="connectionProperties" style="display: none;">
+                        <div class="property-label">Connection Type</div>
+                        <div class="connection-style-options">
+                            <div class="style-option selected" onclick="setConnectionStyle('arrow')">→</div>
+                            <div class="style-option" onclick="setConnectionStyle('double')">↔</div>
+                            <div class="style-option" onclick="setConnectionStyle('none')">—</div>
+                        </div>
+                        
+                        <div class="property-label" style="margin-top: 12px;">Line Style</div>
+                        <div class="connection-style-options">
+                            <div class="style-option selected" onclick="setLineStyle('solid')">━━</div>
+                            <div class="style-option" onclick="setLineStyle('dotted')">┅┅</div>
+                        </div>
+                        
+                        <div class="property-label" style="margin-top: 12px;">Label</div>
+                        <input type="text" class="property-input" id="connectionLabel" placeholder="Connection label" oninput="updateConnectionLabel()">
                     </div>
                 </div>
             </div>
@@ -1028,8 +1477,10 @@
         let subgraphs = [];
         let nodeIdCounter = 0;
         let subgraphIdCounter = 0;
+        let connectionIdCounter = 0;
         let selectedNode = null;
         let selectedSubgraph = null;
+        let selectedConnection = null;
         let flowDirection = 'TD';
         let isDragging = false;
         let draggedNode = null;
@@ -1039,6 +1490,69 @@
         let tempLine = null;
         let dragGhost = null;
         let subgraphMode = false;
+        let currentTheme = 'dark';
+        
+        // Theme Toggle
+        function toggleTheme() {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.body.classList.toggle('light-mode');
+            
+            const darkOption = document.querySelector('.dark-option');
+            const lightOption = document.querySelector('.light-option');
+            
+            if (currentTheme === 'dark') {
+                darkOption.classList.add('active');
+                lightOption.classList.remove('active');
+            } else {
+                darkOption.classList.remove('active');
+                lightOption.classList.add('active');
+            }
+            
+            // Re-initialize Mermaid with new theme
+            initializeMermaid();
+
+// Ensure all UI panels reflow correctly after side panel transitions
+document.getElementById('shapePanel').addEventListener('transitionend', () => {
+    updateConnections();
+    window.dispatchEvent(new Event('resize'));
+}, { once: true });
+
+            updateMermaidCode();
+        }
+        
+        // Panel Toggle
+        function togglePanel() {
+            const panel = document.getElementById('shapePanel');
+            const icon = document.getElementById('panelToggleIcon');
+            const workspace = document.querySelector('.workspace');
+            const editorArea = document.querySelector('.editor-area');
+            
+            panel.classList.toggle('collapsed');
+            icon.textContent = panel.classList.contains('collapsed') ? '▶' : '◀';
+            
+            // Force immediate layout recalculation
+            if (panel.classList.contains('collapsed')) {
+                workspace.style.marginLeft = '24px'; // Account for toggle button
+                workspace.style.width = 'calc(100% - 24px)';
+            } else {
+                workspace.style.marginLeft = '0';
+                workspace.style.width = '100%';
+            }
+            
+            // Force layout reflow immediately
+            workspace.offsetHeight; // Trigger reflow
+            
+            // Update connections and trigger resize events
+            requestAnimationFrame(() => {
+                updateConnections();
+                window.dispatchEvent(new Event('resize'));
+                
+                // Double-check after another frame
+                requestAnimationFrame(() => {
+                    updateConnections();
+                });
+            });
+        }
         
         // Throttle function for performance
         function throttle(func, delay) {
@@ -1053,36 +1567,50 @@
         }
         
         // Initialize Mermaid
-        mermaid.initialize({ 
-            startOnLoad: false,
-            theme: 'dark',
-            themeVariables: {
-                darkMode: true,
-                background: '#1e1e1e',
-                primaryColor: '#007acc',
-                primaryTextColor: '#fff',
-                primaryBorderColor: '#40a9ff',
-                lineColor: '#999',
-                secondaryColor: '#252526',
-                tertiaryColor: '#3c3c3c'
-            },
-            flowchart: {
-                htmlLabels: true,
-                curve: 'linear'
-            },
-            securityLevel: 'loose',
-            // Disable interactivity
-            interaction: {
-                dragNodes: false,
-                zoomView: false,
-                panView: false
-            }
-        });
+        function initializeMermaid() {
+            const isDark = currentTheme === 'dark';
+            mermaid.initialize({ 
+                startOnLoad: false,
+                theme: isDark ? 'dark' : 'default',
+                themeVariables: isDark ? {
+                    darkMode: true,
+                    background: '#1e1e1e',
+                    primaryColor: '#007acc',
+                    primaryTextColor: '#fff',
+                    primaryBorderColor: '#40a9ff',
+                    lineColor: '#999',
+                    secondaryColor: '#252526',
+                    tertiaryColor: '#3c3c3c'
+                } : {
+                    primaryColor: '#0066cc',
+                    primaryTextColor: '#1a1a1a',
+                    primaryBorderColor: '#0052cc',
+                    lineColor: '#666',
+                    secondaryColor: '#f5f5f5',
+                    tertiaryColor: '#f0f0f0'
+                },
+                flowchart: {
+                    htmlLabels: true,
+                    curve: 'linear'
+                },
+                securityLevel: 'loose',
+                // Disable interactivity
+                interaction: {
+                    dragNodes: false,
+                    zoomView: false,
+                    panView: false
+                }
+            });
+        }
+        
+        // Initialize Mermaid on load
+        initializeMermaid();
 
         // Setup drag and drop for shape items
         document.querySelectorAll('.shape-item').forEach(item => {
             item.addEventListener('dragstart', handleShapeDragStart);
             item.addEventListener('dragend', handleShapeDragEnd);
+            item.addEventListener('click', handleShapeClick);
         });
 
         // Setup drop zone on canvas
@@ -1090,11 +1618,28 @@
         canvas.addEventListener('dragover', handleCanvasDragOver);
         canvas.addEventListener('drop', handleCanvasDrop);
 
+        // Shape selection
+        let selectedShapeType = 'rectangle'; // Default selection
+        
+        function handleShapeClick(e) {
+            // Remove previous selection
+            document.querySelectorAll('.shape-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Add selection to clicked item
+            e.currentTarget.classList.add('selected');
+            selectedShapeType = e.currentTarget.dataset.shape;
+        }
+        
         // Shape drag handlers
         function handleShapeDragStart(e) {
             e.dataTransfer.effectAllowed = 'copy';
             e.dataTransfer.setData('shape-type', e.currentTarget.dataset.shape);
             e.currentTarget.classList.add('dragging');
+            
+            // Also select the shape being dragged
+            handleShapeClick(e);
             
             // Create custom drag image
             const ghost = e.currentTarget.cloneNode(true);
@@ -1128,64 +1673,150 @@
         // Add Node
         function addNode(type, x, y) {
             const canvas = document.getElementById('canvas');
-            const node = document.createElement('div');
             const nodeId = `node${nodeIdCounter++}`;
             
-            node.className = `node ${type}`;
-            node.id = nodeId;
-            node.style.left = x + 'px';
-            node.style.top = y + 'px';
+            // Check if shape needs wrapper for clip-path
+            const needsWrapper = ['hexagon', 'trapezoid', 'trapezoid-alt'].includes(type);
+            
+            let nodeElement;
+            let innerNode;
+            
+            if (needsWrapper) {
+                // Create wrapper element for connection points and delete button
+                nodeElement = document.createElement('div');
+                nodeElement.className = 'node-wrapper';
+                nodeElement.id = nodeId;
+                nodeElement.style.left = x + 'px';
+                nodeElement.style.top = y + 'px';
+                
+                // Set wrapper dimensions based on node type
+                let wrapperWidth = '120px';
+                let wrapperHeight = '60px';
+                
+                if (type === 'hexagon') {
+                    wrapperWidth = '140px';
+                    wrapperHeight = '80px';
+                } else if (type === 'trapezoid' || type === 'trapezoid-alt') {
+                    wrapperWidth = '140px';
+                    wrapperHeight = '70px';
+                }
+                
+                nodeElement.style.width = wrapperWidth;
+                nodeElement.style.height = wrapperHeight;
+                
+                // Create actual shape element
+                innerNode = document.createElement('div');
+                innerNode.className = `node ${type}`;
+                nodeElement.appendChild(innerNode);
+            } else {
+                // Regular node
+                nodeElement = document.createElement('div');
+                nodeElement.className = `node ${type}`;
+                nodeElement.id = nodeId;
+                nodeElement.style.left = x + 'px';
+                nodeElement.style.top = y + 'px';
+                innerNode = nodeElement;
+            }
+            
+            // Create text element
+            const textEl = document.createElement('div');
+            textEl.className = 'node-text';
+            textEl.contentEditable = false;
             
             // Add text based on type
             let text = 'Process';
             switch(type) {
-                case 'diamond': text = '<span>Decision</span>'; break;
-                case 'parallelogram': text = '<span>Input/Output</span>'; break;
+                case 'diamond': text = 'Decision'; break;
+                case 'parallelogram': text = 'Input/Output'; break;
                 case 'cylinder': text = 'Database'; break;
                 case 'hexagon': text = 'Preparation'; break;
                 case 'trapezoid': text = 'Manual Process'; break;
                 case 'trapezoid-alt': text = 'Manual Input'; break;
                 case 'subroutine': text = 'Subroutine'; break;
             }
-            node.innerHTML = text;
+            textEl.textContent = text;
+            
+            // Add double click handler for editing
+            textEl.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                startEditingNodeText(textEl, nodeId);
+            });
+            
+            innerNode.appendChild(textEl);
+            
+            // Set initial color
+            innerNode.style.background = '#007acc';
             
             // Add controls
             const controls = document.createElement('div');
             controls.className = 'node-controls';
             controls.innerHTML = '<div class="node-delete" onclick="deleteNode(event, \'' + nodeId + '\')">×</div>';
-            node.appendChild(controls);
+            nodeElement.appendChild(controls);
             
             // Add connection points
             ['top', 'right', 'bottom', 'left'].forEach(pos => {
                 const point = document.createElement('div');
                 point.className = `connection-point ${pos}`;
                 point.onmousedown = (e) => startConnection(e, nodeId, pos);
-                node.appendChild(point);
+                nodeElement.appendChild(point);
             });
             
             // Add event listeners
-            node.addEventListener('mousedown', handleNodeMouseDown);
-            node.addEventListener('click', handleNodeClick);
+            nodeElement.addEventListener('mousedown', handleNodeMouseDown);
+            nodeElement.addEventListener('click', handleNodeClick);
             
-            canvas.appendChild(node);
+            canvas.appendChild(nodeElement);
             
+            // データの保存時にラッパーかどうかの情報も保存
             nodes.push({
                 id: nodeId,
                 type: type,
-                text: text.replace(/<[^>]*>/g, ''),
-                color: '#007acc'
+                text: text,
+                color: '#007acc',
+                hasWrapper: needsWrapper
             });
             
             // Select the new node
-            selectNode(node);
+            selectNode(nodeElement);
             
             updateMermaidCode();
+        }
+
+        // Start editing node text
+        function startEditingNodeText(textEl, nodeId) {
+            textEl.contentEditable = true;
+            textEl.classList.add('editing');
+            textEl.focus();
+            
+            // Select all text
+            const range = document.createRange();
+            range.selectNodeContents(textEl);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            
+            const finishEditing = () => {
+                textEl.contentEditable = false;
+                textEl.classList.remove('editing');
+                const nodeData = nodes.find(n => n.id === nodeId);
+                nodeData.text = textEl.textContent;
+                updateMermaidCode();
+            };
+            
+            textEl.addEventListener('blur', finishEditing, { once: true });
+            textEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    textEl.blur();
+                }
+            });
         }
 
         // Node Events
         function handleNodeMouseDown(e) {
             if (e.target.classList.contains('connection-point') || 
-                e.target.classList.contains('node-delete')) return;
+                e.target.classList.contains('node-delete') ||
+                e.target.classList.contains('editing')) return;
             
             isDragging = true;
             draggedNode = e.currentTarget;
@@ -1205,11 +1836,27 @@
         }
 
         function selectNode(node) {
+            // Deselect previous selections
             if (selectedNode) {
                 selectedNode.classList.remove('selected');
+                // Also remove from wrapper if exists
+                if (selectedNode.classList.contains('node-wrapper')) {
+                    selectedNode.classList.remove('selected');
+                }
             }
+            if (selectedConnection) {
+                selectedConnection = null;
+                document.getElementById('connectionProperties').style.display = 'none';
+            }
+            
             selectedNode = node;
-            node.classList.add('selected');
+            
+            // For wrapped nodes, add selected to wrapper; for regular nodes, add to node itself
+            if (node.classList.contains('node-wrapper')) {
+                node.classList.add('selected');
+            } else {
+                node.classList.add('selected');
+            }
             
             const nodeData = nodes.find(n => n.id === node.id);
             document.getElementById('selectedInfo').textContent = `Node: ${nodeData.text}`;
@@ -1286,20 +1933,6 @@
             tempLine.setAttribute('y2', mouseY);
         }
 
-        function getConnectionPoint(nodeRect, canvasRect, position) {
-            const x = nodeRect.left - canvasRect.left;
-            const y = nodeRect.top - canvasRect.top;
-            const w = nodeRect.width;
-            const h = nodeRect.height;
-            
-            switch(position) {
-                case 'top': return { x: x + w/2, y: y };
-                case 'right': return { x: x + w, y: y + h/2 };
-                case 'bottom': return { x: x + w/2, y: y + h };
-                case 'left': return { x: x, y: y + h/2 };
-            }
-        }
-
         function createConnection(fromId, toId) {
             // Check if connection already exists
             const exists = connections.some(c => 
@@ -1308,9 +1941,14 @@
             );
             
             if (!exists) {
+                const connectionId = `conn${connectionIdCounter++}`;
                 connections.push({
+                    id: connectionId,
                     from: fromId,
-                    to: toId
+                    to: toId,
+                    style: 'arrow',
+                    lineStyle: 'solid',
+                    label: ''
                 });
                 updateConnections();
                 updateMermaidCode();
@@ -1320,10 +1958,27 @@
         function endConnection(e) {
             if (!isConnecting) return;
             
-            // Find target node
-            const target = e.target.closest('.node');
-            if (target && target.id !== connectionStart.nodeId) {
-                createConnection(connectionStart.nodeId, target.id);
+            // Find target node (check both .node and .node-wrapper)
+            let target = e.target.closest('.node');
+            if (!target) {
+                target = e.target.closest('.node-wrapper');
+            }
+            
+            // Get the actual node ID
+            let targetId = null;
+            if (target) {
+                if (target.classList.contains('node-wrapper')) {
+                    targetId = target.id;
+                } else if (target.classList.contains('node')) {
+                    // If it's a regular node, use its ID
+                    // If it's inside a wrapper, use the wrapper's ID
+                    const wrapper = target.closest('.node-wrapper');
+                    targetId = wrapper ? wrapper.id : target.id;
+                }
+            }
+            
+            if (targetId && targetId !== connectionStart.nodeId) {
+                createConnection(connectionStart.nodeId, targetId);
             }
             
             // Clean up
@@ -1335,7 +1990,75 @@
             connectionStart = null;
         }
 
-        // Update connections
+        // Select connection
+        function selectConnection(connId) {
+            selectedConnection = connections.find(c => c.id === connId);
+            if (selectedNode) {
+                selectedNode.classList.remove('selected');
+                selectedNode = null;
+            }
+            
+            document.getElementById('selectedInfo').textContent = 'Connection';
+            document.getElementById('nodeProperties').style.display = 'none';
+            document.getElementById('connectionProperties').style.display = 'block';
+            
+            // Update UI
+            document.getElementById('connectionLabel').value = selectedConnection.label || '';
+            
+            // Update style buttons
+            document.querySelectorAll('.connection-style-options .style-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            const styleMap = {
+                'arrow': 0,
+                'double': 1,
+                'none': 2
+            };
+            const lineStyleMap = {
+                'solid': 0,
+                'dotted': 1
+            };
+            
+            document.querySelectorAll('.connection-style-options')[0].children[styleMap[selectedConnection.style || 'arrow']].classList.add('selected');
+            document.querySelectorAll('.connection-style-options')[1].children[lineStyleMap[selectedConnection.lineStyle || 'solid']].classList.add('selected');
+        }
+
+        // Connection style functions
+        function setConnectionStyle(style) {
+            if (!selectedConnection) return;
+            selectedConnection.style = style;
+            updateConnections();
+            updateMermaidCode();
+            
+            // Update UI
+            document.querySelectorAll('.connection-style-options')[0].querySelectorAll('.style-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+        }
+
+        function setLineStyle(style) {
+            if (!selectedConnection) return;
+            selectedConnection.lineStyle = style;
+            updateConnections();
+            updateMermaidCode();
+            
+            // Update UI
+            document.querySelectorAll('.connection-style-options')[1].querySelectorAll('.style-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+        }
+
+        function updateConnectionLabel() {
+            if (!selectedConnection) return;
+            selectedConnection.label = document.getElementById('connectionLabel').value;
+            updateConnections();
+            updateMermaidCode();
+        }
+
+        // Update connections with improved edge calculation
         const updateConnections = throttle(function() {
             const svg = document.getElementById('connectionSvg');
             const canvas = document.getElementById('canvas');
@@ -1348,23 +2071,43 @@
             // Remove old delete buttons
             canvas.querySelectorAll('.connection-delete-btn').forEach(btn => btn.remove());
             
-            // Add arrow marker
+            // Add arrow markers
             const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            
+            // Standard arrow
             const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
             marker.setAttribute('id', 'arrowhead');
-            marker.setAttribute('markerWidth', '12');
-            marker.setAttribute('markerHeight', '12');
-            marker.setAttribute('refX', '8');
-            marker.setAttribute('refY', '6');
+            marker.setAttribute('markerWidth', '10');
+            marker.setAttribute('markerHeight', '10');
+            marker.setAttribute('refX', '9');
+            marker.setAttribute('refY', '5');
             marker.setAttribute('orient', 'auto');
             marker.setAttribute('markerUnits', 'strokeWidth');
             
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            path.setAttribute('d', 'M0,0 L12,6 L0,12 L3,6 z');
-            path.setAttribute('fill', '#999');
+            path.setAttribute('d', 'M0,0 L10,5 L0,10 L3,5 z');
+            path.setAttribute('fill', 'var(--connection-color)');
             
             marker.appendChild(path);
             defs.appendChild(marker);
+            
+            // Reverse arrow
+            const markerReverse = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            markerReverse.setAttribute('id', 'arrowhead-reverse');
+            markerReverse.setAttribute('markerWidth', '10');
+            markerReverse.setAttribute('markerHeight', '10');
+            markerReverse.setAttribute('refX', '2');
+            markerReverse.setAttribute('refY', '5');
+            markerReverse.setAttribute('orient', 'auto');
+            markerReverse.setAttribute('markerUnits', 'strokeWidth');
+            
+            const pathReverse = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            pathReverse.setAttribute('d', 'M0,0 L10,5 L0,10 L3,5 z');
+            pathReverse.setAttribute('fill', 'var(--connection-color)');
+            
+            markerReverse.appendChild(pathReverse);
+            defs.appendChild(markerReverse);
+            
             svg.appendChild(defs);
             
             // Draw connections
@@ -1394,36 +2137,31 @@
                         // For diamond shape, we need to adjust for rotation
                         if (shape === 'diamond') {
                             // Diamond is rotated 45 degrees, need to un-rotate the angle
-                            const unrotatedAngle = angle + Math.PI / 4;
+                            const unrotatedAngle = angle - Math.PI / 4;
                             const cos = Math.cos(unrotatedAngle);
                             const sin = Math.sin(unrotatedAngle);
                             
                             // Diamond is a square rotated 45 degrees
-                            const halfSize = Math.min(width, height) / 2;
+                            const halfDiag = Math.min(width, height) / Math.sqrt(2) / 2;
                             
-                            // Calculate which edge of the diamond we intersect
+                            // Calculate intersection with diamond edges
                             const abscos = Math.abs(cos);
                             const abssin = Math.abs(sin);
                             
-                            let edgeX, edgeY;
+                            let scale;
+                            if (abscos + abssin === 0) scale = 0;
+                            else scale = halfDiag / (abscos + abssin);
                             
-                            if (abscos > abssin) {
-                                // Intersect with left or right edge
-                                edgeX = (cos > 0 ? 1 : -1) * halfSize;
-                                edgeY = edgeX * sin / cos;
-                            } else {
-                                // Intersect with top or bottom edge
-                                edgeY = (sin > 0 ? 1 : -1) * halfSize;
-                                edgeX = edgeY * cos / sin;
-                            }
+                            const edgeX = cos * scale;
+                            const edgeY = sin * scale;
                             
-                            // Rotate back to diamond orientation
-                            const rotatedX = edgeX * Math.cos(-Math.PI/4) - edgeY * Math.sin(-Math.PI/4);
-                            const rotatedY = edgeX * Math.sin(-Math.PI/4) + edgeY * Math.cos(-Math.PI/4);
+                            // Rotate back to screen coordinates
+                            const rotatedX = (edgeX - edgeY) * Math.sqrt(2) / 2;
+                            const rotatedY = (edgeX + edgeY) * Math.sqrt(2) / 2;
                             
                             return {
-                                x: centerX + rotatedX * 0.85 * (isFrom ? 1 : -1),
-                                y: centerY + rotatedY * 0.85 * (isFrom ? 1 : -1)
+                                x: centerX + rotatedX,
+                                y: centerY + rotatedY
                             };
                         }
                         
@@ -1431,8 +2169,8 @@
                         if (shape === 'round') {
                             const radius = Math.min(width, height) / 2;
                             return {
-                                x: centerX + Math.cos(angle) * radius * 0.9 * (isFrom ? 1 : -1),
-                                y: centerY + Math.sin(angle) * radius * 0.9 * (isFrom ? 1 : -1)
+                                x: centerX + Math.cos(angle) * radius,
+                                y: centerY + Math.sin(angle) * radius
                             };
                         }
                         
@@ -1447,8 +2185,62 @@
                             const factor = 1 / Math.sqrt((cos * cos) / (radiusX * radiusX) + (sin * sin) / (radiusY * radiusY));
                             
                             return {
-                                x: centerX + cos * factor * 0.9 * (isFrom ? 1 : -1),
-                                y: centerY + sin * factor * 0.9 * (isFrom ? 1 : -1)
+                                x: centerX + cos * factor,
+                                y: centerY + sin * factor
+                            };
+                        }
+                        
+                        // For hexagon shape
+                        if (shape === 'hexagon') {
+                            const halfWidth = width / 2;
+                            const halfHeight = height / 2;
+                            
+                            // Normalize angle to [0, 2π]
+                            let a = angle % (2 * Math.PI);
+                            if (a < 0) a += 2 * Math.PI;
+                            
+                            // Calculate intersection with hexagon edge
+                            const cos = Math.cos(angle);
+                            const sin = Math.sin(angle);
+                            
+                            // Hexagon vertices (assuming flat-top orientation)
+                            const vertices = [];
+                            for (let i = 0; i < 6; i++) {
+                                const vertexAngle = i * Math.PI / 3;
+                                vertices.push({
+                                    x: halfWidth * 0.7 * Math.cos(vertexAngle),
+                                    y: halfHeight * Math.sin(vertexAngle)
+                                });
+                            }
+                            
+                            // Find intersection with the appropriate edge
+                            let minT = Infinity;
+                            let intersectionX = 0, intersectionY = 0;
+                            
+                            for (let i = 0; i < 6; i++) {
+                                const v1 = vertices[i];
+                                const v2 = vertices[(i + 1) % 6];
+                                
+                                // Ray-line segment intersection
+                                const dx = v2.x - v1.x;
+                                const dy = v2.y - v1.y;
+                                const det = dx * sin - dy * cos;
+                                
+                                if (Math.abs(det) > 0.001) {
+                                    const t = ((v1.x * sin - v1.y * cos) / det);
+                                    const u = ((v1.x * sin - v1.y * cos + cos * dy - sin * dx) / det);
+                                    
+                                    if (t > 0 && u >= 0 && u <= 1 && t < minT) {
+                                        minT = t;
+                                        intersectionX = cos * t;
+                                        intersectionY = sin * t;
+                                    }
+                                }
+                            }
+                            
+                            return {
+                                x: centerX + intersectionX,
+                                y: centerY + intersectionY
                             };
                         }
                         
@@ -1475,100 +2267,132 @@
                         }
                         
                         // Apply shape-specific adjustments
-                        let adjustFactor = 0.9; // Default adjustment
-                        
-                        if (shape === 'hexagon') {
-                            // Hexagon has angled edges, need special calculation
-                            const hexAngle = Math.atan2(edgeY, edgeX);
-                            const sector = Math.floor((hexAngle + Math.PI) / (Math.PI / 3));
-                            const sectorAngle = sector * Math.PI / 3 - Math.PI / 2;
-                            
-                            // Calculate intersection with hexagon edge
-                            const hexEdgeNormal = {
-                                x: Math.cos(sectorAngle),
-                                y: Math.sin(sectorAngle)
-                            };
-                            
-                            const t = halfWidth * 0.8 / Math.abs(hexEdgeNormal.x * cos + hexEdgeNormal.y * sin);
-                            edgeX = cos * t;
-                            edgeY = sin * t;
-                            adjustFactor = 0.85;
-                        } else if (shape === 'parallelogram') {
+                        if (shape === 'parallelogram') {
                             // Account for skew transformation
                             const skewAngle = -20 * Math.PI / 180;
                             const unskewedX = edgeX - edgeY * Math.tan(skewAngle);
                             
-                            if (Math.abs(unskewedX) > halfWidth) {
-                                edgeX = (unskewedX > 0 ? 1 : -1) * halfWidth;
+                            if (Math.abs(unskewedX) > halfWidth * 0.9) {
+                                edgeX = (unskewedX > 0 ? 1 : -1) * halfWidth * 0.9;
                                 edgeY = (edgeX - unskewedX) / Math.tan(skewAngle);
                             }
-                            adjustFactor = 0.85;
                         } else if (shape === 'trapezoid' || shape === 'trapezoid-alt') {
                             // Trapezoids have slanted sides
                             const slope = shape === 'trapezoid' ? 0.2 : -0.2;
                             const topWidth = halfWidth * (shape === 'trapezoid' ? 0.8 : 1);
                             const bottomWidth = halfWidth * (shape === 'trapezoid' ? 1 : 0.8);
                             
-                            if (Math.abs(edgeY) >= halfHeight * 0.9) {
+                            if (Math.abs(edgeY) >= halfHeight * 0.95) {
                                 // Top or bottom edge
                                 const currentWidth = edgeY > 0 ? bottomWidth : topWidth;
                                 if (Math.abs(edgeX) > currentWidth) {
                                     edgeX = (edgeX > 0 ? 1 : -1) * currentWidth;
                                 }
-                            } else {
-                                // Side edge
-                                const yRatio = (edgeY + halfHeight) / (2 * halfHeight);
-                                const currentWidth = topWidth + (bottomWidth - topWidth) * yRatio;
-                                if (Math.abs(edgeX) > currentWidth) {
-                                    edgeX = (edgeX > 0 ? 1 : -1) * currentWidth;
-                                    edgeY = (edgeX > 0 ? 
-                                        (slope > 0 ? halfHeight * (edgeX / halfWidth) : -halfHeight * (edgeX / halfWidth)) :
-                                        (slope > 0 ? -halfHeight * (-edgeX / halfWidth) : halfHeight * (-edgeX / halfWidth)));
-                                }
                             }
-                            adjustFactor = 0.85;
                         }
                         
                         return {
-                            x: centerX + edgeX * adjustFactor * (isFrom ? 1 : -1),
-                            y: centerY + edgeY * adjustFactor * (isFrom ? 1 : -1)
+                            x: centerX + edgeX,
+                            y: centerY + edgeY
                         };
                     }
                     
                     // Calculate adjusted start and end points
                     const startPoint = getEdgePoint(fromNode, x1, y1, angle, true);
-                    const endPoint = getEdgePoint(toNode, x2, y2, angle, false);
-                    
-                    const adjustedX1 = startPoint.x;
-                    const adjustedY1 = startPoint.y;
-                    const adjustedX2 = endPoint.x;
-                    const adjustedY2 = endPoint.y;
-                    
+                    const endPoint = getEdgePoint(toNode, x2, y2, angle + Math.PI, false);
+
+                    // Adjust for arrow markers
+                    let adjustedStartPoint = {...startPoint};
+                    let adjustedEndPoint = {...endPoint};
+
+                    // For double arrows, adjust both ends
+                    if (conn.style === 'double') {
+                        const arrowOffset = 5; // Offset for arrow visibility
+                        const dx = endPoint.x - startPoint.x;
+                        const dy = endPoint.y - startPoint.y;
+                        const length = Math.sqrt(dx * dx + dy * dy);
+                        const unitX = dx / length;
+                        const unitY = dy / length;
+                        
+                        adjustedStartPoint.x = startPoint.x + unitX * arrowOffset;
+                        adjustedStartPoint.y = startPoint.y + unitY * arrowOffset;
+                        adjustedEndPoint.x = endPoint.x - unitX * arrowOffset;
+                        adjustedEndPoint.y = endPoint.y - unitY * arrowOffset;
+                    }  
+
                     // Create group for connection
                     const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
                     group.setAttribute('class', 'connection-group');
+                    group.setAttribute('data-connection-id', conn.id);
                     
                     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                    line.setAttribute('x1', adjustedX1);
-                    line.setAttribute('y1', adjustedY1);
-                    line.setAttribute('x2', adjustedX2);
-                    line.setAttribute('y2', adjustedY2);
-                    line.setAttribute('class', 'connection-line');
-                    line.setAttribute('marker-end', 'url(#arrowhead)');
+                    line.setAttribute('x1', adjustedStartPoint.x);
+                    line.setAttribute('y1', adjustedStartPoint.y);
+                    line.setAttribute('x2', adjustedEndPoint.x);
+                    line.setAttribute('y2', adjustedEndPoint.y);
+                    line.setAttribute('class', 'connection-line' + (conn.lineStyle === 'dotted' ? ' dotted' : ''));
+                    
+                    // Set arrow markers based on style
+                    if (conn.style === 'arrow') {
+                        line.setAttribute('marker-end', 'url(#arrowhead)');
+                    } else if (conn.style === 'double') {
+                        line.setAttribute('marker-end', 'url(#arrowhead)');
+                        line.setAttribute('marker-start', 'url(#arrowhead-reverse)');
+                    }
+                    
+                    // Add click handler
+                    line.addEventListener('click', () => selectConnection(conn.id));
                     
                     group.appendChild(line);
+                    
+                    // Add label if exists
+                    if (conn.label) {
+                        const midX = (startPoint.x + endPoint.x) / 2;
+                        const midY = (startPoint.y + endPoint.y) / 2;
+                        
+                        // Create background rect for label
+                        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                        rect.setAttribute('class', 'connection-label-bg');
+                        rect.setAttribute('x', midX - 30);
+                        rect.setAttribute('y', midY - 12);
+                        rect.setAttribute('width', '60');
+                        rect.setAttribute('height', '24');
+                        group.appendChild(rect);
+                        
+                        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        text.setAttribute('class', 'connection-label');
+                        text.setAttribute('x', midX);
+                        text.setAttribute('y', midY + 4);
+                        text.textContent = conn.label;
+                        group.appendChild(text);
+                        
+                        // Adjust rect width based on text
+                        setTimeout(() => {
+                            const bbox = text.getBBox();
+                            rect.setAttribute('x', bbox.x - 4);
+                            rect.setAttribute('y', bbox.y - 2);
+                            rect.setAttribute('width', bbox.width + 8);
+                            rect.setAttribute('height', bbox.height + 4);
+                        }, 0);
+                    }
+                    
                     svg.appendChild(group);
                     
                     // Create delete button
                     const deleteBtn = document.createElement('div');
                     deleteBtn.className = 'connection-delete-btn';
                     deleteBtn.innerHTML = '×';
-                    deleteBtn.style.left = ((adjustedX1 + adjustedX2) / 2 - 10) + 'px';
-                    deleteBtn.style.top = ((adjustedY1 + adjustedY2) / 2 - 10) + 'px';
+                    deleteBtn.style.left = ((startPoint.x + endPoint.x) / 2 - 10) + 'px';
+                    deleteBtn.style.top = ((startPoint.y + endPoint.y) / 2 - 10) + 'px';
                     
                     deleteBtn.addEventListener('click', function(e) {
                         e.stopPropagation();
                         connections.splice(index, 1);
+                        if (selectedConnection && selectedConnection.id === conn.id) {
+                            selectedConnection = null;
+                            document.getElementById('connectionProperties').style.display = 'none';
+                            document.getElementById('selectedInfo').textContent = 'None';
+                        }
                         updateConnections();
                         updateMermaidCode();
                     });
@@ -1636,6 +2460,10 @@
                     document.getElementById('selectedInfo').textContent = 'None';
                     document.getElementById('nodeProperties').style.display = 'none';
                 }
+                if (selectedConnection) {
+                    selectedConnection = null;
+                    document.getElementById('connectionProperties').style.display = 'none';
+                }
             }
         });
 
@@ -1647,12 +2475,7 @@
             const nodeData = nodes.find(n => n.id === selectedNode.id);
             nodeData.text = text;
             
-            if (selectedNode.classList.contains('diamond') || 
-                selectedNode.classList.contains('parallelogram')) {
-                selectedNode.querySelector('span').textContent = text;
-            } else {
-                selectedNode.childNodes[0].textContent = text;
-            }
+            selectedNode.querySelector('.node-text').textContent = text;
             
             updateMermaidCode();
         }
@@ -1666,8 +2489,20 @@
                 return;
             }
             
-            selectedNode.style.background = color;
             const nodeData = nodes.find(n => n.id === selectedNode.id);
+            
+            // Check if node has wrapper
+            if (selectedNode.classList.contains('node-wrapper')) {
+                // For wrapped nodes, find and color the inner node
+                const innerNode = selectedNode.querySelector('.node');
+                if (innerNode) {
+                    innerNode.style.background = color;
+                }
+            } else {
+                // For regular nodes, set color directly
+                selectedNode.style.background = color;
+            }
+            
             nodeData.color = color;
             
             // Update color picker and input
@@ -1863,7 +2698,39 @@
             
             // Add connections
             connections.forEach(conn => {
-                code += `    ${conn.from} --> ${conn.to}\n`;
+                let connectionCode = `    ${conn.from} `;
+                
+                // Connection style
+                if (conn.style === 'double') {
+                    connectionCode += '<-->';
+                } else if (conn.style === 'none') {
+                    connectionCode += '---';
+                } else {
+                    connectionCode += '-->';
+                }
+                
+                // Add label if exists
+                if (conn.label) {
+                    if (conn.style === 'none') {
+                        connectionCode = `    ${conn.from} ---|${conn.label}|`;
+                    } else {
+                        connectionCode = `    ${conn.from} -->|${conn.label}|`;
+                    }
+                }
+                
+                // Add line style
+                if (conn.lineStyle === 'dotted') {
+                    if (conn.style === 'double') {
+                        connectionCode = connectionCode.replace('<-->', '<-.->');
+                    } else if (conn.style === 'none') {
+                        connectionCode = connectionCode.replace('---', '-.-');
+                    } else { // single arrow
+                        connectionCode = connectionCode.replace('-->', '-.->');
+                    }
+                }
+                
+                connectionCode += ` ${conn.to}\n`;
+                code += connectionCode;
             });
             
             document.getElementById('mermaidCode').textContent = code;
@@ -1875,7 +2742,7 @@
             const preview = document.getElementById('mermaidPreview');
             
             if (nodes.length === 0 && subgraphs.length === 0) {
-                preview.innerHTML = '<div style="color: #666; text-align: center;">Add nodes to see preview</div>';
+                preview.innerHTML = '<div style="color: var(--text-tertiary); text-align: center;">Add nodes to see preview</div>';
                 return;
             }
             
@@ -2014,10 +2881,13 @@
             subgraphs = [];
             nodeIdCounter = 0;
             subgraphIdCounter = 0;
+            connectionIdCounter = 0;
             selectedNode = null;
             selectedSubgraph = null;
+            selectedConnection = null;
             document.getElementById('selectedInfo').textContent = 'None';
             document.getElementById('nodeProperties').style.display = 'none';
+            document.getElementById('connectionProperties').style.display = 'none';
             updateConnections();
             updateMermaidCode();
         }
@@ -2113,9 +2983,6 @@
         });
         
         function createQuickSubgraph() {
-            const title = prompt('Enter group name (e.g., VPC, Subnet, Cluster):', 'Group');
-            if (!title) return;
-            
             const canvas = document.getElementById('canvas');
             const container = document.querySelector('.canvas-container');
             
@@ -2128,15 +2995,14 @@
             const x = scrollLeft + viewWidth / 2 - 150;
             const y = scrollTop + viewHeight / 2 - 100;
             
-            createSubgraph(x, y, 300, 200, title);
+            createSubgraph(x, y, 300, 200);
         }
         
         function createSubgraph(x, y, width, height, title) {
             const subgraphId = `subgraph${subgraphIdCounter++}`;
             
             if (!title) {
-                title = prompt('Enter group name (e.g., VPC, Subnet, Cluster):', 'Group');
-                if (!title) return;
+                title = `Group ${subgraphIdCounter}`;
             }
             
             const subgraph = document.createElement('div');
@@ -2148,9 +3014,17 @@
             subgraph.style.height = height + 'px';
             subgraph.style.zIndex = 1; // Below nodes
             
-            const titleEl = document.createElement('div');
+            const titleEl = document.createElement('input');
             titleEl.className = 'subgraph-title';
-            titleEl.textContent = title;
+            titleEl.value = title;
+            titleEl.readOnly = true;
+            
+            // Double click to edit
+            titleEl.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                startEditingSubgraphTitle(titleEl, subgraphId);
+            });
+            
             subgraph.appendChild(titleEl);
             
             const deleteBtn = document.createElement('div');
@@ -2158,7 +3032,7 @@
             deleteBtn.innerHTML = '×';
             deleteBtn.onclick = function(e) {
                 e.stopPropagation();
-                if (confirm(`Delete group "${title}"?`)) {
+                if (confirm(`Delete group "${titleEl.value}"?`)) {
                     subgraph.remove();
                     subgraphs = subgraphs.filter(s => s.id !== subgraphId);
                     if (selectedSubgraph && selectedSubgraph.id === subgraphId) {
@@ -2175,7 +3049,6 @@
             subgraph.appendChild(resizeHandle);
             
             subgraph.addEventListener('mousedown', handleSubgraphMouseDown);
-            subgraph.addEventListener('dblclick', editSubgraphTitle);
             
             // Add resize functionality
             resizeHandle.addEventListener('mousedown', function(e) {
@@ -2216,9 +3089,32 @@
             updateMermaidCode();
         }
         
+        function startEditingSubgraphTitle(titleEl, subgraphId) {
+            titleEl.readOnly = false;
+            titleEl.classList.add('editing');
+            titleEl.focus();
+            titleEl.select();
+            
+            const finishEditing = () => {
+                titleEl.readOnly = true;
+                titleEl.classList.remove('editing');
+                const subgraphData = subgraphs.find(s => s.id === subgraphId);
+                subgraphData.title = titleEl.value;
+                updateMermaidCode();
+            };
+            
+            titleEl.addEventListener('blur', finishEditing, { once: true });
+            titleEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    titleEl.blur();
+                }
+            });
+        }
+        
         function handleSubgraphMouseDown(e) {
-            if (e.target.classList.contains('subgraph-resize')) {
-                // Handle resize
+            if (e.target.classList.contains('subgraph-resize') ||
+                e.target.classList.contains('editing')) {
                 return;
             }
             
@@ -2249,18 +3145,7 @@
             const subgraphData = subgraphs.find(s => s.id === subgraph.id);
             document.getElementById('selectedInfo').textContent = `Subgraph: ${subgraphData.title}`;
             document.getElementById('nodeProperties').style.display = 'none';
-        }
-        
-        function editSubgraphTitle(e) {
-            const subgraph = e.currentTarget;
-            const subgraphData = subgraphs.find(s => s.id === subgraph.id);
-            const newTitle = prompt('Edit subgraph title:', subgraphData.title);
-            
-            if (newTitle) {
-                subgraphData.title = newTitle;
-                subgraph.querySelector('.subgraph-title').textContent = newTitle;
-                updateMermaidCode();
-            }
+            document.getElementById('connectionProperties').style.display = 'none';
         }
         
         // Initialize Resize Functionality
@@ -2299,28 +3184,50 @@
             if (!isResizing) return;
             
             const deltaX = e.clientX - startX;
-            const editorAreaWidth = editorArea.offsetWidth;
+            const workspaceWidth = document.querySelector('.workspace').offsetWidth;
+            const propertiesPanelWidth = document.querySelector('.properties-panel').offsetWidth;
+            const editorAreaWidth = workspaceWidth - propertiesPanelWidth;
             
             // Calculate new widths
             let newCanvasWidth = startCanvasWidth + deltaX;
             let newPreviewWidth = startPreviewWidth - deltaX;
             
             // Apply constraints
-            const minWidth = 300;
-            const maxCanvasWidth = editorAreaWidth - minWidth - 50; // 50px for margins
-            const maxPreviewWidth = editorAreaWidth - minWidth - 50;
+            const resizeHandleWidth = 16;
+            const availableWidth = editorAreaWidth - resizeHandleWidth;
             
-            newCanvasWidth = Math.max(minWidth, Math.min(newCanvasWidth, maxCanvasWidth));
-            newPreviewWidth = Math.max(minWidth, Math.min(newPreviewWidth, maxPreviewWidth));
+            // Set minimum preview width to 30% of available space (7:3 ratio limit)
+            // Since preview has border-box sizing, this includes padding
+            const minPreviewWidth = Math.max(366, Math.ceil(availableWidth * 0.3)); // 350px content + 16px right padding
+            const minCanvasWidth = 300;
             
-            // Calculate percentages
+            // Ensure preview doesn't get too small (maintain 7:3 ratio limit)
+            if (newPreviewWidth < minPreviewWidth) {
+                newPreviewWidth = minPreviewWidth;
+                newCanvasWidth = availableWidth - newPreviewWidth;
+            }
+            
+            // Ensure canvas doesn't get too small
+            if (newCanvasWidth < minCanvasWidth) {
+                newCanvasWidth = minCanvasWidth;
+                newPreviewWidth = availableWidth - newCanvasWidth;
+            }
+            
+            // Ensure total equals available space
             const totalWidth = newCanvasWidth + newPreviewWidth;
-            const canvasPercent = (newCanvasWidth / totalWidth) * 100;
-            const previewPercent = (newPreviewWidth / totalWidth) * 100;
+            if (Math.abs(totalWidth - availableWidth) > 1) {
+                const ratio = availableWidth / totalWidth;
+                newCanvasWidth *= ratio;
+                newPreviewWidth *= ratio;
+            }
             
-            // Apply new widths
-            canvasContainer.style.flex = `0 0 ${canvasPercent}%`;
-            previewArea.style.width = `${previewPercent}%`;
+            // Apply new widths using flex
+            // For canvas, use the calculated width directly
+            canvasContainer.style.flex = `0 0 ${newCanvasWidth}px`;
+            
+            // For preview area with border-box, just set the flex width which includes padding
+            previewArea.style.flex = `0 0 ${newPreviewWidth}px`;
+            previewArea.style.width = 'auto'; // Let flex handle the width
             
             // Update connections after resize
             updateConnections();
@@ -2336,7 +3243,21 @@
         });
         
         // Initialize
-        updateMermaidCode();
+        function initializeEditor() {
+            updateMermaidCode();
+            
+            // Set default shape selection
+            const defaultShape = document.querySelector('.shape-item[data-shape="rectangle"]');
+            if (defaultShape) {
+                defaultShape.classList.add('selected');
+                selectedShapeType = 'rectangle';
+            }
+        }
+        
+        // Initialize when page loads
+        initializeEditor();
     </script>
+</body>
+</html>
 </body>
 </html>
