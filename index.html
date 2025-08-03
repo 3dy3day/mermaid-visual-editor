@@ -2091,18 +2091,18 @@ document.getElementById('shapePanel').addEventListener('transitionend', () => {
             marker.appendChild(path);
             defs.appendChild(marker);
             
-            // Reverse arrow
+            // Reverse arrow (pointing in opposite direction)
             const markerReverse = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
             markerReverse.setAttribute('id', 'arrowhead-reverse');
             markerReverse.setAttribute('markerWidth', '10');
             markerReverse.setAttribute('markerHeight', '10');
-            markerReverse.setAttribute('refX', '2');
+            markerReverse.setAttribute('refX', '1');
             markerReverse.setAttribute('refY', '5');
             markerReverse.setAttribute('orient', 'auto');
             markerReverse.setAttribute('markerUnits', 'strokeWidth');
             
             const pathReverse = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            pathReverse.setAttribute('d', 'M0,0 L10,5 L0,10 L3,5 z');
+            pathReverse.setAttribute('d', 'M10,0 L0,5 L10,10 L7,5 z');
             pathReverse.setAttribute('fill', 'var(--connection-color)');
             
             markerReverse.appendChild(pathReverse);
