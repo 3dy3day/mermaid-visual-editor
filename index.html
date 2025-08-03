@@ -1,0 +1,2342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid Visual Editor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.6.1/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Top Toolbar */
+        .toolbar {
+            height: 48px;
+            background: #252526;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 8px;
+        }
+        
+        .tool-button {
+            background: #3c3c3c;
+            border: 1px solid #464647;
+            color: #cccccc;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        
+        .tool-button:hover {
+            background: #505050;
+            color: #fff;
+        }
+        
+        .tool-separator {
+            width: 1px;
+            height: 24px;
+            background: #3e3e42;
+            margin: 0 8px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Shape Panel */
+        .shape-panel {
+            width: 200px;
+            background: #252526;
+            border-right: 1px solid #3e3e42;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        .panel-header {
+            padding: 16px;
+            background: #007acc;
+            border-bottom: 1px solid #3e3e42;
+            color: white;
+        }
+        
+        .panel-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .panel-header p {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+        }
+        
+        .shape-section {
+            padding: 16px;
+            border-bottom: 1px solid #3e3e42;
+            overflow: visible;
+        }
+        
+        .section-title {
+            font-size: 12px;
+            color: white;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            font-weight: 600;
+            background: #3c3c3c;
+            padding: 6px 10px;
+            margin: -16px -16px 12px -16px;
+            border-bottom: 1px solid #007acc;
+        }
+        
+        .shape-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .shape-item {
+            aspect-ratio: 1;
+            background: #3c3c3c;
+            border: 2px solid #464647;
+            border-radius: 4px;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            position: relative;
+            min-height: 70px;
+        }
+        
+        .shape-item:hover {
+            background: #007acc;
+            border-color: #40a9ff;
+            transform: scale(1.05);
+        }
+        
+        .shape-item.dragging {
+            opacity: 0.5;
+        }
+        
+        .shape-item::after {
+            content: attr(title);
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .shape-item:hover::after {
+            opacity: 1;
+        }
+        
+        .shape-preview {
+            width: 50%;
+            height: 35%;
+            background: white;
+            border-radius: 2px;
+            pointer-events: none;
+        }
+        
+        .shape-preview.round {
+            border-radius: 50%;
+        }
+        
+        .shape-preview.stadium {
+            border-radius: 20px;
+        }
+        
+        .shape-preview.subroutine {
+            border: 3px double white;
+            background: transparent;
+            width: 60%;
+            height: 40%;
+        }
+        
+        .shape-preview.diamond {
+            transform: rotate(45deg);
+            width: 35%;
+            height: 35%;
+        }
+        
+        .shape-preview.hexagon {
+            clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
+        }
+        
+        .shape-preview.parallelogram {
+            transform: skewX(-20deg);
+        }
+        
+        .shape-preview.trapezoid {
+            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+        }
+        
+        .shape-preview.trapezoid-alt {
+            clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
+        }
+        
+        .shape-preview.cylinder {
+            border-radius: 50%/20%;
+            height: 50%;
+        }
+        
+        /* Workspace */
+        .workspace {
+            flex: 1;
+            display: flex;
+            min-width: 0;
+        }
+        
+        /* Editor Area */
+        .editor-area {
+            flex: 1;
+            display: flex;
+            min-width: 0;
+            position: relative;
+        }
+        
+        /* Resize Handle */
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            background: transparent;
+            cursor: ew-resize;
+            z-index: 100;
+            transition: background 0.2s;
+        }
+        
+        .resize-handle:hover {
+            background: #007acc;
+        }
+        
+        .resize-handle::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 2px;
+            height: 40px;
+            background: #464647;
+            border-radius: 1px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .resize-handle:hover::before {
+            opacity: 1;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            background: #1e1e1e;
+            position: relative;
+            overflow: auto;
+            margin: 16px;
+            margin-right: 0;
+            border-radius: 8px;
+        }
+        
+        /* Modern Scrollbar Styles */
+        .canvas-container::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        .canvas-container::-webkit-scrollbar-track {
+            background: #1e1e1e;
+            border-radius: 8px;
+        }
+        
+        .canvas-container::-webkit-scrollbar-thumb {
+            background: #464647;
+            border-radius: 8px;
+            border: 2px solid #1e1e1e;
+        }
+        
+        .canvas-container::-webkit-scrollbar-thumb:hover {
+            background: #5c5c5d;
+        }
+        
+        .canvas-container::-webkit-scrollbar-corner {
+            background: #1e1e1e;
+        }
+        
+        #canvas {
+            position: relative;
+            width: 2000px;
+            height: 2000px;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        #connectionSvg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 2000px;
+            height: 2000px;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        #connectionSvg * {
+            pointer-events: auto;
+        }
+        
+        /* Nodes */
+        .node {
+            position: absolute;
+            min-width: 120px;
+            min-height: 60px;
+            padding: 16px 24px;
+            background: #007acc;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: move;
+            user-select: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: transform 0.15s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 10;
+        }
+        
+        .node:hover {
+            transform: scale(1.05);
+        }
+        
+        .node.selected {
+            outline: 2px solid #40a9ff;
+            outline-offset: 4px;
+        }
+        
+        .node.rectangle {
+            border-radius: 4px;
+        }
+        
+        .node.round {
+            border-radius: 50%;
+            min-width: 100px;
+            min-height: 100px;
+        }
+        
+        .node.stadium {
+            border-radius: 30px;
+        }
+        
+        .node.subroutine {
+            border: 3px double white;
+        }
+        
+        .node.diamond {
+            transform: rotate(45deg);
+            min-width: 100px;
+            min-height: 100px;
+        }
+        
+        .node.diamond span {
+            transform: rotate(-45deg);
+        }
+        
+        .node.hexagon {
+            clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
+            min-width: 140px;
+        }
+        
+        .node.parallelogram {
+            transform: skewX(-20deg);
+        }
+        
+        .node.parallelogram span {
+            transform: skewX(20deg);
+        }
+        
+        .node.trapezoid {
+            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+        }
+        
+        .node.trapezoid-alt {
+            clip-path: polygon(0% 0%, 100% 0%, 80% 100%, 20% 100%);
+        }
+        
+        .node.cylinder {
+            border-radius: 50%/20%;
+            min-height: 80px;
+        }
+        
+        /* Node Controls */
+        .node-controls {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            display: none;
+            gap: 4px;
+            z-index: 30;
+        }
+        
+        .node:hover .node-controls {
+            display: flex;
+        }
+        
+        .node-delete {
+            width: 24px;
+            height: 24px;
+            background: #f5222d;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        
+        .node-delete:hover {
+            background: #cf1322;
+            transform: scale(1.1);
+        }
+        
+        /* Special handling for transformed nodes */
+        .node.diamond .node-controls {
+            transform: rotate(-45deg);
+            transform-origin: center;
+        }
+        
+        .node.parallelogram .node-controls {
+            transform: skewX(20deg);
+        }
+        
+        /* Connection Points */
+        .connection-point {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #40a9ff;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            cursor: crosshair;
+            opacity: 0;
+            transition: opacity 0.15s;
+            z-index: 10;
+        }
+        
+        .node:hover .connection-point {
+            opacity: 1;
+        }
+        
+        .connection-point.top {
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .connection-point.right {
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .connection-point.bottom {
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .connection-point.left {
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        /* Preview Area */
+        .preview-area {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            padding-left: 0;
+            min-width: 300px;
+        }
+        
+        .preview-container {
+            flex: 1;
+            background: #252526;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+        
+        .preview-header {
+            padding: 12px 16px;
+            background: #1e1e1e;
+            border-bottom: 1px solid #3e3e42;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .preview-content {
+            flex: 1;
+            padding: 24px;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+        }
+        
+        #mermaidPreview {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        #mermaidPreview svg {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto !important;
+            height: auto !important;
+        }
+        
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        /* Disable hover effects on Mermaid elements */
+        .mermaid .node rect,
+        .mermaid .node circle,
+        .mermaid .node ellipse,
+        .mermaid .node polygon,
+        .mermaid .node path {
+            cursor: default !important;
+        }
+        
+        .mermaid .node:hover {
+            transform: none !important;
+        }
+        
+        .mermaid .edgePath path:hover {
+            stroke-width: 2 !important;
+        }
+        
+        .code-container {
+            background: #1e1e1e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .code-header {
+            padding: 8px 16px;
+            background: #252526;
+            border-bottom: 1px solid #3e3e42;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .code-editor {
+            padding: 16px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            color: #d4d4d4;
+            overflow: auto;
+            white-space: pre;
+            height: 300px;
+            max-height: 300px;
+            background: #1e1e1e;
+        }
+        
+        .code-container.collapsed .code-editor {
+            display: none;
+        }
+        
+        /* Properties Panel */
+        .properties-panel {
+            width: 280px;
+            background: #252526;
+            border-left: 1px solid #3e3e42;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        .property-group {
+            padding: 16px;
+            border-bottom: 1px solid #3e3e42;
+        }
+        
+        .property-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 6px;
+        }
+        
+        .property-input {
+            width: 100%;
+            padding: 8px;
+            background: #3c3c3c;
+            border: 1px solid #464647;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        .property-input:focus {
+            outline: none;
+            border-color: #007acc;
+        }
+        
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .color-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.15s;
+        }
+        
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .color-option.selected {
+            border-color: #fff;
+        }
+        
+        /* Subgraph */
+        .subgraph {
+            position: absolute;
+            border: 2px dashed #666;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            padding: 32px 16px 16px 16px;
+            min-width: 250px;
+            min-height: 200px;
+            cursor: move;
+            z-index: 1;
+        }
+        
+        .subgraph.selected {
+            border-color: #40a9ff;
+            background: rgba(64,169,255,0.1);
+        }
+        
+        .subgraph-title {
+            position: absolute;
+            top: 8px;
+            left: 16px;
+            font-size: 14px;
+            color: #fff;
+            font-weight: 600;
+            background: #3c3c3c;
+            padding: 4px 12px;
+            border-radius: 4px;
+        }
+        
+        .subgraph-delete {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            background: #f5222d;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 20;
+        }
+        
+        .subgraph:hover .subgraph-delete {
+            display: flex;
+        }
+        
+        .subgraph-delete:hover {
+            background: #cf1322;
+        }
+        
+        .subgraph-resize {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            cursor: se-resize;
+            background: transparent;
+        }
+        
+        .subgraph-resize::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 0 10px 10px;
+            border-color: transparent transparent #666 transparent;
+        }
+        
+        .subgraph:hover .subgraph-resize::after {
+            border-color: transparent transparent #40a9ff transparent;
+        }
+        
+        .creating-subgraph {
+            border: 2px dashed #40a9ff;
+            background: rgba(64,169,255,0.1);
+            pointer-events: none;
+        }
+        
+        .connection-line {
+            stroke: #999;
+            stroke-width: 2;
+            fill: none;
+            transition: stroke 0.15s;
+            pointer-events: stroke;
+            cursor: pointer;
+        }
+        
+        .connection-line:hover {
+            stroke: #40a9ff;
+            stroke-width: 3;
+        }
+        
+        .connection-delete-btn {
+            display: none;
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #f5222d;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 20;
+            pointer-events: auto;
+        }
+        
+        .connection-delete-btn:hover {
+            background: #cf1322;
+            transform: scale(1.1);
+        }
+        
+        .connection-group:hover .connection-delete-btn {
+            display: flex;
+        }
+        
+        .temp-connection {
+            stroke: #40a9ff;
+            stroke-width: 2;
+            stroke-dasharray: 5,5;
+            fill: none;
+        }
+        
+        /* Drag Ghost */
+        .drag-ghost {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0.8;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2d2d30;
+            border: 1px solid #3e3e42;
+            border-radius: 8px;
+            padding: 24px;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+        
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .direction-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        
+        .direction-btn {
+            padding: 12px;
+            background: #3c3c3c;
+            border: 1px solid #464647;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+        
+        .direction-btn:hover {
+            background: #505050;
+        }
+        
+        .direction-btn.selected {
+            background: #007acc;
+            border-color: #007acc;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <button class="tool-button" onclick="showDirectionModal()">
+                <span style="opacity: 0.7;">↕</span> Direction
+            </button>
+            <button class="tool-button" onclick="toggleSubgraphMode()">
+                <span style="opacity: 0.7;">▢</span> Subgraph
+            </button>
+            <div class="tool-separator"></div>
+            <button class="tool-button" onclick="clearCanvas()">
+                <span style="opacity: 0.7;">×</span> Clear All
+            </button>
+            <div class="tool-separator"></div>
+            <button class="tool-button" onclick="copyCode()">
+                <span style="opacity: 0.7;">⎘</span> Copy Code
+            </button>
+            <button class="tool-button" onclick="exportSVG()">
+                <span style="opacity: 0.7;">↓</span> Export SVG
+            </button>
+        </div>
+        
+        <div class="main-content">
+            <!-- Shape Panel -->
+            <div class="shape-panel">
+                <div class="panel-header">
+                    <h3>Shape Palette</h3>
+                    <p>Drag to canvas</p>
+                </div>
+                
+                <div class="shape-section">
+                    <div class="section-title">Basic Shapes</div>
+                    <div class="shape-grid">
+                        <div class="shape-item" draggable="true" data-shape="rectangle" title="Rectangle">
+                            <div class="shape-preview"></div>
+                        </div>
+                        <div class="shape-item" draggable="true" data-shape="round" title="Circle">
+                            <div class="shape-preview round"></div>
+                        </div>
+                        <div class="shape-item" draggable="true" data-shape="stadium" title="Stadium">
+                            <div class="shape-preview stadium"></div>
+                        </div>
+                        <div class="shape-item" draggable="true" data-shape="subroutine" title="Subroutine">
+                            <div class="shape-preview subroutine"></div>
+                        </div>
+                        <div class="shape-item" draggable="true" data-shape="diamond" title="Decision">
+                            <div class="shape-preview diamond"></div>
+                        </div>
+                        <div class="shape-item" draggable="true" data-shape="hexagon" title="Hexagon">
+                            <div class="shape-preview hexagon"></div>
+                        </div>
+                        <div class="shape-item" draggable="true" data-shape="parallelogram" title="Input/Output">
+                            <div class="shape-preview parallelogram"></div>
+                        </div>
+                        <div class="shape-item" draggable="true" data-shape="trapezoid" title="Manual Process">
+                            <div class="shape-preview trapezoid"></div>
+                        </div>
+                        <div class="shape-item" draggable="true" data-shape="trapezoid-alt" title="Manual Input">
+                            <div class="shape-preview trapezoid-alt"></div>
+                        </div>
+                        <div class="shape-item" draggable="true" data-shape="cylinder" title="Database">
+                            <div class="shape-preview cylinder"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="shape-section">
+                    <div class="section-title">Groups</div>
+                    <button class="tool-button" style="width: 100%;" onclick="createQuickSubgraph()">
+                        Add Group
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Workspace -->
+            <div class="workspace">
+                <div class="editor-area">
+                    <!-- Canvas -->
+                    <div class="canvas-container" id="canvasContainer">
+                        <div id="canvas">
+                            <svg id="connectionSvg"></svg>
+                        </div>
+                    </div>
+                    
+                    <!-- Resize Handle -->
+                    <div class="resize-handle" id="resizeHandle"></div>
+                    
+                    <!-- Preview -->
+                    <div class="preview-area">
+                        <div class="preview-container">
+                            <div class="preview-header">Preview</div>
+                            <div class="preview-content">
+                                <div id="mermaidPreview"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="code-container" id="codeContainer">
+                            <div class="code-header" onclick="toggleCodeView()">
+                                <span>Mermaid Code</span>
+                                <span id="toggleIcon">▼</span>
+                            </div>
+                            <div class="code-editor" id="mermaidCode">graph TD</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Properties Panel -->
+                <div class="properties-panel">
+                    <div class="property-group">
+                        <div class="section-title">Selected Element</div>
+                        <div id="selectedInfo" style="color: #666; font-size: 12px;">None</div>
+                    </div>
+                    
+                    <div class="property-group" id="nodeProperties" style="display: none;">
+                        <div class="property-label">Text</div>
+                        <input type="text" class="property-input" id="nodeText" oninput="updateNodeText()">
+                        
+                        <div class="property-label" style="margin-top: 12px;">Background Color</div>
+                        <div class="color-grid">
+                            <div class="color-option" style="background: #007acc;" onclick="setNodeColor('#007acc')"></div>
+                            <div class="color-option" style="background: #40a9ff;" onclick="setNodeColor('#40a9ff')"></div>
+                            <div class="color-option" style="background: #52c41a;" onclick="setNodeColor('#52c41a')"></div>
+                            <div class="color-option" style="background: #faad14;" onclick="setNodeColor('#faad14')"></div>
+                            <div class="color-option" style="background: #f5222d;" onclick="setNodeColor('#f5222d')"></div>
+                            <div class="color-option" style="background: #722ed1;" onclick="setNodeColor('#722ed1')"></div>
+                        </div>
+                        
+                        <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center;">
+                            <input type="color" id="colorPicker" value="#007acc" style="width: 50px; height: 36px; border: 1px solid #464647; border-radius: 4px; cursor: pointer; background: #3c3c3c;" onchange="setNodeColor(this.value)">
+                            <input type="text" id="colorInput" placeholder="#000000" style="flex: 1; padding: 8px 10px; background: #3c3c3c; border: 1px solid #464647; color: #fff; border-radius: 4px; font-size: 14px; font-family: 'Consolas', 'Monaco', monospace; font-weight: 500;" onkeyup="handleColorInput(event)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Direction Modal -->
+    <div class="modal-backdrop" id="modalBackdrop" onclick="closeModal()"></div>
+    <div class="modal" id="directionModal">
+        <div class="section-title" style="margin-bottom: 16px;">Flow Direction</div>
+        <div class="direction-options">
+            <button class="direction-btn" onclick="setDirection('TD')">↓ Top to Bottom</button>
+            <button class="direction-btn" onclick="setDirection('LR')">→ Left to Right</button>
+            <button class="direction-btn" onclick="setDirection('BT')">↑ Bottom to Top</button>
+            <button class="direction-btn" onclick="setDirection('RL')">← Right to Left</button>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let nodes = [];
+        let connections = [];
+        let subgraphs = [];
+        let nodeIdCounter = 0;
+        let subgraphIdCounter = 0;
+        let selectedNode = null;
+        let selectedSubgraph = null;
+        let flowDirection = 'TD';
+        let isDragging = false;
+        let draggedNode = null;
+        let offset = { x: 0, y: 0 };
+        let isConnecting = false;
+        let connectionStart = null;
+        let tempLine = null;
+        let dragGhost = null;
+        let subgraphMode = false;
+        
+        // Throttle function for performance
+        function throttle(func, delay) {
+            let lastCall = 0;
+            return function(...args) {
+                const now = Date.now();
+                if (now - lastCall >= delay) {
+                    lastCall = now;
+                    return func.apply(this, args);
+                }
+            };
+        }
+        
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            startOnLoad: false,
+            theme: 'dark',
+            themeVariables: {
+                darkMode: true,
+                background: '#1e1e1e',
+                primaryColor: '#007acc',
+                primaryTextColor: '#fff',
+                primaryBorderColor: '#40a9ff',
+                lineColor: '#999',
+                secondaryColor: '#252526',
+                tertiaryColor: '#3c3c3c'
+            },
+            flowchart: {
+                htmlLabels: true,
+                curve: 'linear'
+            },
+            securityLevel: 'loose',
+            // Disable interactivity
+            interaction: {
+                dragNodes: false,
+                zoomView: false,
+                panView: false
+            }
+        });
+
+        // Setup drag and drop for shape items
+        document.querySelectorAll('.shape-item').forEach(item => {
+            item.addEventListener('dragstart', handleShapeDragStart);
+            item.addEventListener('dragend', handleShapeDragEnd);
+        });
+
+        // Setup drop zone on canvas
+        const canvas = document.getElementById('canvas');
+        canvas.addEventListener('dragover', handleCanvasDragOver);
+        canvas.addEventListener('drop', handleCanvasDrop);
+
+        // Shape drag handlers
+        function handleShapeDragStart(e) {
+            e.dataTransfer.effectAllowed = 'copy';
+            e.dataTransfer.setData('shape-type', e.currentTarget.dataset.shape);
+            e.currentTarget.classList.add('dragging');
+            
+            // Create custom drag image
+            const ghost = e.currentTarget.cloneNode(true);
+            ghost.style.position = 'absolute';
+            ghost.style.top = '-1000px';
+            document.body.appendChild(ghost);
+            e.dataTransfer.setDragImage(ghost, 40, 40);
+            setTimeout(() => ghost.remove(), 0);
+        }
+
+        function handleShapeDragEnd(e) {
+            e.currentTarget.classList.remove('dragging');
+        }
+
+        function handleCanvasDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        }
+
+        function handleCanvasDrop(e) {
+            e.preventDefault();
+            const shapeType = e.dataTransfer.getData('shape-type');
+            if (shapeType) {
+                const canvasRect = canvas.getBoundingClientRect();
+                const x = e.clientX - canvasRect.left;
+                const y = e.clientY - canvasRect.top;
+                addNode(shapeType, x - 60, y - 30);
+            }
+        }
+
+        // Add Node
+        function addNode(type, x, y) {
+            const canvas = document.getElementById('canvas');
+            const node = document.createElement('div');
+            const nodeId = `node${nodeIdCounter++}`;
+            
+            node.className = `node ${type}`;
+            node.id = nodeId;
+            node.style.left = x + 'px';
+            node.style.top = y + 'px';
+            
+            // Add text based on type
+            let text = 'Process';
+            switch(type) {
+                case 'diamond': text = '<span>Decision</span>'; break;
+                case 'parallelogram': text = '<span>Input/Output</span>'; break;
+                case 'cylinder': text = 'Database'; break;
+                case 'hexagon': text = 'Preparation'; break;
+                case 'trapezoid': text = 'Manual Process'; break;
+                case 'trapezoid-alt': text = 'Manual Input'; break;
+                case 'subroutine': text = 'Subroutine'; break;
+            }
+            node.innerHTML = text;
+            
+            // Add controls
+            const controls = document.createElement('div');
+            controls.className = 'node-controls';
+            controls.innerHTML = '<div class="node-delete" onclick="deleteNode(event, \'' + nodeId + '\')">×</div>';
+            node.appendChild(controls);
+            
+            // Add connection points
+            ['top', 'right', 'bottom', 'left'].forEach(pos => {
+                const point = document.createElement('div');
+                point.className = `connection-point ${pos}`;
+                point.onmousedown = (e) => startConnection(e, nodeId, pos);
+                node.appendChild(point);
+            });
+            
+            // Add event listeners
+            node.addEventListener('mousedown', handleNodeMouseDown);
+            node.addEventListener('click', handleNodeClick);
+            
+            canvas.appendChild(node);
+            
+            nodes.push({
+                id: nodeId,
+                type: type,
+                text: text.replace(/<[^>]*>/g, ''),
+                color: '#007acc'
+            });
+            
+            // Select the new node
+            selectNode(node);
+            
+            updateMermaidCode();
+        }
+
+        // Node Events
+        function handleNodeMouseDown(e) {
+            if (e.target.classList.contains('connection-point') || 
+                e.target.classList.contains('node-delete')) return;
+            
+            isDragging = true;
+            draggedNode = e.currentTarget;
+            const rect = draggedNode.getBoundingClientRect();
+            offset.x = e.clientX - rect.left;
+            offset.y = e.clientY - rect.top;
+            
+            selectNode(draggedNode);
+        }
+
+        function handleNodeClick(e) {
+            if (e.target.classList.contains('connection-point') || 
+                e.target.classList.contains('node-delete')) return;
+            
+            e.stopPropagation();
+            selectNode(e.currentTarget);
+        }
+
+        function selectNode(node) {
+            if (selectedNode) {
+                selectedNode.classList.remove('selected');
+            }
+            selectedNode = node;
+            node.classList.add('selected');
+            
+            const nodeData = nodes.find(n => n.id === node.id);
+            document.getElementById('selectedInfo').textContent = `Node: ${nodeData.text}`;
+            document.getElementById('nodeProperties').style.display = 'block';
+            document.getElementById('nodeText').value = nodeData.text;
+            
+            // Update color controls
+            const color = nodeData.color || '#007acc';
+            document.getElementById('colorPicker').value = color;
+            document.getElementById('colorInput').value = color;
+            
+            // Update selected color indicator
+            document.querySelectorAll('.color-option').forEach(opt => {
+                opt.classList.remove('selected');
+                if (opt.style.background === color || 
+                    rgbToHex(opt.style.background) === color.toLowerCase()) {
+                    opt.classList.add('selected');
+                }
+            });
+        }
+
+        // Delete Node
+        function deleteNode(e, nodeId) {
+            e.stopPropagation();
+            const node = document.getElementById(nodeId);
+            if (node) {
+                node.remove();
+                nodes = nodes.filter(n => n.id !== nodeId);
+                connections = connections.filter(c => c.from !== nodeId && c.to !== nodeId);
+                updateConnections();
+                updateMermaidCode();
+                
+                if (selectedNode && selectedNode.id === nodeId) {
+                    selectedNode = null;
+                    document.getElementById('selectedInfo').textContent = 'None';
+                    document.getElementById('nodeProperties').style.display = 'none';
+                }
+            }
+        }
+
+        // Connection Management
+        function startConnection(e, nodeId, position) {
+            e.stopPropagation();
+            isConnecting = true;
+            connectionStart = { nodeId, position };
+            
+            const svg = document.getElementById('connectionSvg');
+            tempLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            tempLine.setAttribute('class', 'temp-connection');
+            svg.appendChild(tempLine);
+            
+            updateTempConnection(e);
+        }
+
+        function updateTempConnection(e) {
+            if (!tempLine || !connectionStart) return;
+            
+            const startNode = document.getElementById(connectionStart.nodeId);
+            if (!startNode) return;
+            
+            const canvas = document.getElementById('canvas');
+            const canvasRect = canvas.getBoundingClientRect();
+            const container = canvas.parentElement;
+            
+            const startX = parseInt(startNode.style.left) + startNode.offsetWidth / 2;
+            const startY = parseInt(startNode.style.top) + startNode.offsetHeight / 2;
+            
+            const mouseX = e.clientX - canvasRect.left + container.scrollLeft;
+            const mouseY = e.clientY - canvasRect.top + container.scrollTop;
+            
+            tempLine.setAttribute('x1', startX);
+            tempLine.setAttribute('y1', startY);
+            tempLine.setAttribute('x2', mouseX);
+            tempLine.setAttribute('y2', mouseY);
+        }
+
+        function getConnectionPoint(nodeRect, canvasRect, position) {
+            const x = nodeRect.left - canvasRect.left;
+            const y = nodeRect.top - canvasRect.top;
+            const w = nodeRect.width;
+            const h = nodeRect.height;
+            
+            switch(position) {
+                case 'top': return { x: x + w/2, y: y };
+                case 'right': return { x: x + w, y: y + h/2 };
+                case 'bottom': return { x: x + w/2, y: y + h };
+                case 'left': return { x: x, y: y + h/2 };
+            }
+        }
+
+        function createConnection(fromId, toId) {
+            // Check if connection already exists
+            const exists = connections.some(c => 
+                (c.from === fromId && c.to === toId) || 
+                (c.from === toId && c.to === fromId)
+            );
+            
+            if (!exists) {
+                connections.push({
+                    from: fromId,
+                    to: toId
+                });
+                updateConnections();
+                updateMermaidCode();
+            }
+        }
+        
+        function endConnection(e) {
+            if (!isConnecting) return;
+            
+            // Find target node
+            const target = e.target.closest('.node');
+            if (target && target.id !== connectionStart.nodeId) {
+                createConnection(connectionStart.nodeId, target.id);
+            }
+            
+            // Clean up
+            if (tempLine) {
+                tempLine.remove();
+                tempLine = null;
+            }
+            isConnecting = false;
+            connectionStart = null;
+        }
+
+        // Update connections
+        const updateConnections = throttle(function() {
+            const svg = document.getElementById('connectionSvg');
+            const canvas = document.getElementById('canvas');
+            
+            // Clear previous content
+            while (svg.firstChild) {
+                svg.removeChild(svg.firstChild);
+            }
+            
+            // Remove old delete buttons
+            canvas.querySelectorAll('.connection-delete-btn').forEach(btn => btn.remove());
+            
+            // Add arrow marker
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+            marker.setAttribute('id', 'arrowhead');
+            marker.setAttribute('markerWidth', '12');
+            marker.setAttribute('markerHeight', '12');
+            marker.setAttribute('refX', '8');
+            marker.setAttribute('refY', '6');
+            marker.setAttribute('orient', 'auto');
+            marker.setAttribute('markerUnits', 'strokeWidth');
+            
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', 'M0,0 L12,6 L0,12 L3,6 z');
+            path.setAttribute('fill', '#999');
+            
+            marker.appendChild(path);
+            defs.appendChild(marker);
+            svg.appendChild(defs);
+            
+            // Draw connections
+            connections.forEach((conn, index) => {
+                const fromNode = document.getElementById(conn.from);
+                const toNode = document.getElementById(conn.to);
+                
+                if (fromNode && toNode) {
+                    const x1 = parseInt(fromNode.style.left) + fromNode.offsetWidth / 2;
+                    const y1 = parseInt(fromNode.style.top) + fromNode.offsetHeight / 2;
+                    const x2 = parseInt(toNode.style.left) + toNode.offsetWidth / 2;
+                    const y2 = parseInt(toNode.style.top) + toNode.offsetHeight / 2;
+                    
+                    // Calculate angle between centers
+                    const angle = Math.atan2(y2 - y1, x2 - x1);
+                    
+                    // Get node shapes for better edge calculation
+                    const fromShape = nodes.find(n => n.id === conn.from)?.type || 'rectangle';
+                    const toShape = nodes.find(n => n.id === conn.to)?.type || 'rectangle';
+                    
+                    // Calculate edge points based on shape type
+                    function getEdgePoint(nodeEl, centerX, centerY, angle, isFrom) {
+                        const shape = isFrom ? fromShape : toShape;
+                        const width = nodeEl.offsetWidth;
+                        const height = nodeEl.offsetHeight;
+                        
+                        // For diamond shape, we need to adjust for rotation
+                        if (shape === 'diamond') {
+                            // Diamond is rotated 45 degrees, need to un-rotate the angle
+                            const unrotatedAngle = angle + Math.PI / 4;
+                            const cos = Math.cos(unrotatedAngle);
+                            const sin = Math.sin(unrotatedAngle);
+                            
+                            // Diamond is a square rotated 45 degrees
+                            const halfSize = Math.min(width, height) / 2;
+                            
+                            // Calculate which edge of the diamond we intersect
+                            const abscos = Math.abs(cos);
+                            const abssin = Math.abs(sin);
+                            
+                            let edgeX, edgeY;
+                            
+                            if (abscos > abssin) {
+                                // Intersect with left or right edge
+                                edgeX = (cos > 0 ? 1 : -1) * halfSize;
+                                edgeY = edgeX * sin / cos;
+                            } else {
+                                // Intersect with top or bottom edge
+                                edgeY = (sin > 0 ? 1 : -1) * halfSize;
+                                edgeX = edgeY * cos / sin;
+                            }
+                            
+                            // Rotate back to diamond orientation
+                            const rotatedX = edgeX * Math.cos(-Math.PI/4) - edgeY * Math.sin(-Math.PI/4);
+                            const rotatedY = edgeX * Math.sin(-Math.PI/4) + edgeY * Math.cos(-Math.PI/4);
+                            
+                            return {
+                                x: centerX + rotatedX * 0.85 * (isFrom ? 1 : -1),
+                                y: centerY + rotatedY * 0.85 * (isFrom ? 1 : -1)
+                            };
+                        }
+                        
+                        // For circular shapes
+                        if (shape === 'round') {
+                            const radius = Math.min(width, height) / 2;
+                            return {
+                                x: centerX + Math.cos(angle) * radius * 0.9 * (isFrom ? 1 : -1),
+                                y: centerY + Math.sin(angle) * radius * 0.9 * (isFrom ? 1 : -1)
+                            };
+                        }
+                        
+                        // For cylinder shape (elliptical due to border-radius)
+                        if (shape === 'cylinder') {
+                            const radiusX = width / 2;
+                            const radiusY = height / 2;
+                            
+                            // Ellipse edge calculation
+                            const cos = Math.cos(angle);
+                            const sin = Math.sin(angle);
+                            const factor = 1 / Math.sqrt((cos * cos) / (radiusX * radiusX) + (sin * sin) / (radiusY * radiusY));
+                            
+                            return {
+                                x: centerX + cos * factor * 0.9 * (isFrom ? 1 : -1),
+                                y: centerY + sin * factor * 0.9 * (isFrom ? 1 : -1)
+                            };
+                        }
+                        
+                        // For rectangular and other shapes
+                        const halfWidth = width / 2;
+                        const halfHeight = height / 2;
+                        
+                        // Calculate intersection with rectangle edges
+                        const cos = Math.cos(angle);
+                        const sin = Math.sin(angle);
+                        const abscos = Math.abs(cos);
+                        const abssin = Math.abs(sin);
+                        
+                        let edgeX, edgeY;
+                        
+                        if (abscos * halfHeight > abssin * halfWidth) {
+                            // Intersects left or right edge
+                            edgeX = cos > 0 ? halfWidth : -halfWidth;
+                            edgeY = edgeX * sin / cos;
+                        } else {
+                            // Intersects top or bottom edge
+                            edgeY = sin > 0 ? halfHeight : -halfHeight;
+                            edgeX = edgeY * cos / sin;
+                        }
+                        
+                        // Apply shape-specific adjustments
+                        let adjustFactor = 0.9; // Default adjustment
+                        
+                        if (shape === 'hexagon') {
+                            // Hexagon has angled edges, need special calculation
+                            const hexAngle = Math.atan2(edgeY, edgeX);
+                            const sector = Math.floor((hexAngle + Math.PI) / (Math.PI / 3));
+                            const sectorAngle = sector * Math.PI / 3 - Math.PI / 2;
+                            
+                            // Calculate intersection with hexagon edge
+                            const hexEdgeNormal = {
+                                x: Math.cos(sectorAngle),
+                                y: Math.sin(sectorAngle)
+                            };
+                            
+                            const t = halfWidth * 0.8 / Math.abs(hexEdgeNormal.x * cos + hexEdgeNormal.y * sin);
+                            edgeX = cos * t;
+                            edgeY = sin * t;
+                            adjustFactor = 0.85;
+                        } else if (shape === 'parallelogram') {
+                            // Account for skew transformation
+                            const skewAngle = -20 * Math.PI / 180;
+                            const unskewedX = edgeX - edgeY * Math.tan(skewAngle);
+                            
+                            if (Math.abs(unskewedX) > halfWidth) {
+                                edgeX = (unskewedX > 0 ? 1 : -1) * halfWidth;
+                                edgeY = (edgeX - unskewedX) / Math.tan(skewAngle);
+                            }
+                            adjustFactor = 0.85;
+                        } else if (shape === 'trapezoid' || shape === 'trapezoid-alt') {
+                            // Trapezoids have slanted sides
+                            const slope = shape === 'trapezoid' ? 0.2 : -0.2;
+                            const topWidth = halfWidth * (shape === 'trapezoid' ? 0.8 : 1);
+                            const bottomWidth = halfWidth * (shape === 'trapezoid' ? 1 : 0.8);
+                            
+                            if (Math.abs(edgeY) >= halfHeight * 0.9) {
+                                // Top or bottom edge
+                                const currentWidth = edgeY > 0 ? bottomWidth : topWidth;
+                                if (Math.abs(edgeX) > currentWidth) {
+                                    edgeX = (edgeX > 0 ? 1 : -1) * currentWidth;
+                                }
+                            } else {
+                                // Side edge
+                                const yRatio = (edgeY + halfHeight) / (2 * halfHeight);
+                                const currentWidth = topWidth + (bottomWidth - topWidth) * yRatio;
+                                if (Math.abs(edgeX) > currentWidth) {
+                                    edgeX = (edgeX > 0 ? 1 : -1) * currentWidth;
+                                    edgeY = (edgeX > 0 ? 
+                                        (slope > 0 ? halfHeight * (edgeX / halfWidth) : -halfHeight * (edgeX / halfWidth)) :
+                                        (slope > 0 ? -halfHeight * (-edgeX / halfWidth) : halfHeight * (-edgeX / halfWidth)));
+                                }
+                            }
+                            adjustFactor = 0.85;
+                        }
+                        
+                        return {
+                            x: centerX + edgeX * adjustFactor * (isFrom ? 1 : -1),
+                            y: centerY + edgeY * adjustFactor * (isFrom ? 1 : -1)
+                        };
+                    }
+                    
+                    // Calculate adjusted start and end points
+                    const startPoint = getEdgePoint(fromNode, x1, y1, angle, true);
+                    const endPoint = getEdgePoint(toNode, x2, y2, angle, false);
+                    
+                    const adjustedX1 = startPoint.x;
+                    const adjustedY1 = startPoint.y;
+                    const adjustedX2 = endPoint.x;
+                    const adjustedY2 = endPoint.y;
+                    
+                    // Create group for connection
+                    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    group.setAttribute('class', 'connection-group');
+                    
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', adjustedX1);
+                    line.setAttribute('y1', adjustedY1);
+                    line.setAttribute('x2', adjustedX2);
+                    line.setAttribute('y2', adjustedY2);
+                    line.setAttribute('class', 'connection-line');
+                    line.setAttribute('marker-end', 'url(#arrowhead)');
+                    
+                    group.appendChild(line);
+                    svg.appendChild(group);
+                    
+                    // Create delete button
+                    const deleteBtn = document.createElement('div');
+                    deleteBtn.className = 'connection-delete-btn';
+                    deleteBtn.innerHTML = '×';
+                    deleteBtn.style.left = ((adjustedX1 + adjustedX2) / 2 - 10) + 'px';
+                    deleteBtn.style.top = ((adjustedY1 + adjustedY2) / 2 - 10) + 'px';
+                    
+                    deleteBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        connections.splice(index, 1);
+                        updateConnections();
+                        updateMermaidCode();
+                    });
+                    
+                    canvas.appendChild(deleteBtn);
+                    
+                    // Show delete button on hover
+                    group.addEventListener('mouseenter', () => {
+                        deleteBtn.style.display = 'flex';
+                    });
+                    
+                    group.addEventListener('mouseleave', () => {
+                        deleteBtn.style.display = 'none';
+                    });
+                    
+                    deleteBtn.addEventListener('mouseenter', () => {
+                        deleteBtn.style.display = 'flex';
+                    });
+                }
+            });
+        }, 16);
+
+        // Mouse Events
+        document.addEventListener('mousemove', throttle(function(e) {
+            if (isDragging && draggedNode) {
+                const canvas = document.getElementById('canvas');
+                const canvasRect = canvas.getBoundingClientRect();
+                
+                // Calculate scroll position
+                const scrollLeft = canvas.parentElement.scrollLeft;
+                const scrollTop = canvas.parentElement.scrollTop;
+                
+                const x = e.clientX - canvasRect.left + scrollLeft - offset.x;
+                const y = e.clientY - canvasRect.top + scrollTop - offset.y;
+                
+                draggedNode.style.left = Math.max(0, x) + 'px';
+                draggedNode.style.top = Math.max(0, y) + 'px';
+                
+                updateConnections();
+                updateMermaidCode();
+            }
+            
+            if (isConnecting) {
+                updateTempConnection(e);
+            }
+        }, 16));
+
+        document.addEventListener('mouseup', function(e) {
+            if (isDragging) {
+                isDragging = false;
+                draggedNode = null;
+            }
+            
+            if (isConnecting) {
+                endConnection(e);
+            }
+        });
+
+        // Canvas click to deselect
+        document.getElementById('canvas').addEventListener('click', function(e) {
+            if (e.target.id === 'canvas') {
+                if (selectedNode) {
+                    selectedNode.classList.remove('selected');
+                    selectedNode = null;
+                    document.getElementById('selectedInfo').textContent = 'None';
+                    document.getElementById('nodeProperties').style.display = 'none';
+                }
+            }
+        });
+
+        // Update node text
+        function updateNodeText() {
+            if (!selectedNode) return;
+            
+            const text = document.getElementById('nodeText').value;
+            const nodeData = nodes.find(n => n.id === selectedNode.id);
+            nodeData.text = text;
+            
+            if (selectedNode.classList.contains('diamond') || 
+                selectedNode.classList.contains('parallelogram')) {
+                selectedNode.querySelector('span').textContent = text;
+            } else {
+                selectedNode.childNodes[0].textContent = text;
+            }
+            
+            updateMermaidCode();
+        }
+
+        // Set node color
+        function setNodeColor(color) {
+            if (!selectedNode) return;
+            
+            // Validate color format
+            if (!/^#[0-9A-F]{6}$/i.test(color)) {
+                return;
+            }
+            
+            selectedNode.style.background = color;
+            const nodeData = nodes.find(n => n.id === selectedNode.id);
+            nodeData.color = color;
+            
+            // Update color picker and input
+            document.getElementById('colorPicker').value = color;
+            document.getElementById('colorInput').value = color;
+            
+            // Update selected color indicator
+            document.querySelectorAll('.color-option').forEach(opt => {
+                opt.classList.remove('selected');
+                if (opt.style.background === color || 
+                    rgbToHex(opt.style.background) === color.toLowerCase()) {
+                    opt.classList.add('selected');
+                }
+            });
+            
+            updateMermaidCode();
+        }
+        
+        // Handle color input
+        function handleColorInput(event) {
+            const input = event.target;
+            let value = input.value.trim();
+            
+            // Auto-add # if missing
+            if (value && !value.startsWith('#')) {
+                value = '#' + value;
+            }
+            
+            // Check if valid hex color
+            if (/^#[0-9A-F]{6}$/i.test(value)) {
+                setNodeColor(value);
+            } else if (event.key === 'Enter' && /^#[0-9A-F]{3}$/i.test(value)) {
+                // Convert 3-digit hex to 6-digit
+                const r = value[1] + value[1];
+                const g = value[2] + value[2];
+                const b = value[3] + value[3];
+                setNodeColor('#' + r + g + b);
+            }
+        }
+        
+        // Convert RGB to Hex
+        function rgbToHex(rgb) {
+            if (!rgb || !rgb.startsWith('rgb')) return rgb;
+            
+            const values = rgb.match(/\d+/g);
+            if (!values || values.length < 3) return rgb;
+            
+            const r = parseInt(values[0]).toString(16).padStart(2, '0');
+            const g = parseInt(values[1]).toString(16).padStart(2, '0');
+            const b = parseInt(values[2]).toString(16).padStart(2, '0');
+            
+            return '#' + r + g + b;
+        }
+
+        // Update Mermaid code
+        function updateMermaidCode() {
+            let code = `graph ${flowDirection}\n`;
+            
+            // Check which nodes are inside subgraphs
+            const nodeSubgraphMap = {};
+            const canvasEl = document.getElementById('canvas');
+            
+            subgraphs.forEach(subgraph => {
+                const subgraphEl = document.getElementById(subgraph.id);
+                if (!subgraphEl) return;
+                
+                nodes.forEach(node => {
+                    const nodeEl = document.getElementById(node.id);
+                    if (!nodeEl) return;
+                    
+                    // Get positions relative to canvas
+                    const nodeLeft = parseInt(nodeEl.style.left);
+                    const nodeTop = parseInt(nodeEl.style.top);
+                    const nodeRight = nodeLeft + nodeEl.offsetWidth;
+                    const nodeBottom = nodeTop + nodeEl.offsetHeight;
+                    
+                    const subLeft = parseInt(subgraphEl.style.left);
+                    const subTop = parseInt(subgraphEl.style.top);
+                    const subRight = subLeft + parseInt(subgraphEl.style.width);
+                    const subBottom = subTop + parseInt(subgraphEl.style.height);
+                    
+                    // Check if node center is inside subgraph
+                    const nodeCenterX = nodeLeft + nodeEl.offsetWidth / 2;
+                    const nodeCenterY = nodeTop + nodeEl.offsetHeight / 2;
+                    
+                    if (nodeCenterX >= subLeft && nodeCenterX <= subRight &&
+                        nodeCenterY >= subTop && nodeCenterY <= subBottom) {
+                        nodeSubgraphMap[node.id] = subgraph.id;
+                    }
+                });
+            });
+            
+            // Generate subgraphs
+            subgraphs.forEach(subgraph => {
+                const nodesInSubgraph = nodes.filter(node => nodeSubgraphMap[node.id] === subgraph.id);
+                if (nodesInSubgraph.length > 0) {
+                    code += `    subgraph ${subgraph.id}["${subgraph.title}"]\n`;
+                    
+                    // Add nodes that belong to this subgraph
+                    nodesInSubgraph.forEach(node => {
+                        const text = node.text.replace(/"/g, '&quot;');
+                        let nodeCode = `        ${node.id}`;
+                        
+                        switch(node.type) {
+                            case 'rectangle':
+                                nodeCode += `["${text}"]`;
+                                break;
+                            case 'round':
+                                nodeCode += `(("${text}"))`;
+                                break;
+                            case 'stadium':
+                                nodeCode += `(["${text}"])`;
+                                break;
+                            case 'subroutine':
+                                nodeCode += `[["${text}"]]`;
+                                break;
+                            case 'diamond':
+                                nodeCode += `{"${text}"}`;
+                                break;
+                            case 'hexagon':
+                                nodeCode += `{{"${text}"}}`;
+                                break;
+                            case 'parallelogram':
+                                nodeCode += `[/"${text}"/]`;
+                                break;
+                            case 'trapezoid':
+                                nodeCode += `[/"${text}"\\]`;
+                                break;
+                            case 'trapezoid-alt':
+                                nodeCode += `[\\"${text}"/]`;
+                                break;
+                            case 'cylinder':
+                                nodeCode += `[("${text}")]`;
+                                break;
+                        }
+                        
+                        code += nodeCode + '\n';
+                    });
+                    
+                    code += '    end\n';
+                }
+            });
+            
+            // Add nodes that are not in any subgraph
+            nodes.forEach(node => {
+                if (!nodeSubgraphMap[node.id]) {
+                    const text = node.text.replace(/"/g, '&quot;');
+                    let nodeCode = `    ${node.id}`;
+                    
+                    switch(node.type) {
+                        case 'rectangle':
+                            nodeCode += `["${text}"]`;
+                            break;
+                        case 'round':
+                            nodeCode += `(("${text}"))`;
+                            break;
+                        case 'stadium':
+                            nodeCode += `(["${text}"])`;
+                            break;
+                        case 'subroutine':
+                            nodeCode += `[["${text}"]]`;
+                            break;
+                        case 'diamond':
+                            nodeCode += `{"${text}"}`;
+                            break;
+                        case 'hexagon':
+                            nodeCode += `{{"${text}"}}`;
+                            break;
+                        case 'parallelogram':
+                            nodeCode += `[/"${text}"/]`;
+                            break;
+                        case 'trapezoid':
+                            nodeCode += `[/"${text}"\\]`;
+                            break;
+                        case 'trapezoid-alt':
+                            nodeCode += `[\\"${text}"/]`;
+                            break;
+                        case 'cylinder':
+                            nodeCode += `[("${text}")]`;
+                            break;
+                    }
+                    
+                    code += nodeCode + '\n';
+                }
+            });
+            
+            // Add styles
+            nodes.forEach(node => {
+                if (node.color && node.color !== '#007acc') {
+                    code += `    style ${node.id} fill:${node.color}\n`;
+                }
+            });
+            
+            // Add connections
+            connections.forEach(conn => {
+                code += `    ${conn.from} --> ${conn.to}\n`;
+            });
+            
+            document.getElementById('mermaidCode').textContent = code;
+            renderMermaidPreview(code);
+        }
+
+        // Render preview with throttling
+        const renderMermaidPreview = throttle(async function(code) {
+            const preview = document.getElementById('mermaidPreview');
+            
+            if (nodes.length === 0 && subgraphs.length === 0) {
+                preview.innerHTML = '<div style="color: #666; text-align: center;">Add nodes to see preview</div>';
+                return;
+            }
+            
+            // Clear previous content but keep a placeholder
+            const placeholder = preview.innerHTML;
+            
+            const mermaidDiv = document.createElement('div');
+            mermaidDiv.className = 'mermaid';
+            mermaidDiv.textContent = code; // Use textContent instead of innerHTML
+            mermaidDiv.style.opacity = '0';
+            preview.innerHTML = '';
+            preview.appendChild(mermaidDiv);
+            
+            try {
+                // Remove any existing diagrams
+                await mermaid.init(undefined, mermaidDiv);
+                
+                // Wait for render to complete
+                setTimeout(() => {
+                    const svg = preview.querySelector('svg');
+                    if (svg) {
+                        // Get all visual elements
+                        const allGroups = svg.querySelectorAll('g');
+                        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                        
+                        // Calculate actual bounds of all content
+                        allGroups.forEach(g => {
+                            try {
+                                const bbox = g.getBBox();
+                                if (bbox.width > 0 && bbox.height > 0) {
+                                    minX = Math.min(minX, bbox.x);
+                                    minY = Math.min(minY, bbox.y);
+                                    maxX = Math.max(maxX, bbox.x + bbox.width);
+                                    maxY = Math.max(maxY, bbox.y + bbox.height);
+                                }
+                            } catch (e) {
+                                // Skip elements that can't provide bbox
+                            }
+                        });
+                        
+                        // If we couldn't get bounds, use SVG viewBox or defaults
+                        if (!isFinite(minX)) {
+                            const viewBox = svg.getAttribute('viewBox');
+                            if (viewBox) {
+                                [minX, minY, maxX, maxY] = viewBox.split(' ').map(Number);
+                                maxX = minX + maxX; // viewBox provides width, not maxX
+                                maxY = minY + maxY; // viewBox provides height, not maxY
+                            } else {
+                                minX = 0; minY = 0; maxX = 200; maxY = 200;
+                            }
+                        }
+                        
+                        // Calculate content dimensions
+                        const contentWidth = maxX - minX;
+                        const contentHeight = maxY - minY;
+                        
+                        // Calculate center point
+                        const centerX = minX + contentWidth / 2;
+                        const centerY = minY + contentHeight / 2;
+                        
+                        // Add padding proportional to content size
+                        const padding = Math.max(20, Math.min(contentWidth, contentHeight) * 0.2);
+                        
+                        // Get preview container dimensions
+                        const previewContainer = preview.parentElement;
+                        const containerWidth = previewContainer.clientWidth;
+                        const containerHeight = previewContainer.clientHeight;
+                        
+                        // Calculate scale to fit content in container
+                        const scaleX = (containerWidth - padding * 2) / contentWidth;
+                        const scaleY = (containerHeight - padding * 2) / contentHeight;
+                        const scale = Math.min(scaleX, scaleY, 1); // Don't scale up beyond 1
+                        
+                        // Calculate viewBox to center content
+                        const viewWidth = containerWidth / scale;
+                        const viewHeight = containerHeight / scale;
+                        const viewX = centerX - viewWidth / 2;
+                        const viewY = centerY - viewHeight / 2;
+                        
+                        svg.setAttribute('viewBox', `${viewX} ${viewY} ${viewWidth} ${viewHeight}`);
+                        
+                        // Set up proper sizing
+                        svg.setAttribute('width', '100%');
+                        svg.setAttribute('height', '100%');
+                        svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                        svg.style.maxWidth = '100%';
+                        svg.style.maxHeight = '100%';
+                        
+                        // Disable all pointer events on SVG elements to prevent hover effects
+                        svg.style.pointerEvents = 'none';
+                        const allElements = svg.querySelectorAll('*');
+                        allElements.forEach(el => {
+                            el.style.pointerEvents = 'none';
+                            el.style.cursor = 'default';
+                        });
+                        
+                        // Fade in
+                        mermaidDiv.style.transition = 'opacity 0.2s';
+                        mermaidDiv.style.opacity = '1';
+                    }
+                }, 100);
+            } catch (error) {
+                console.error('Mermaid render error:', error);
+                preview.innerHTML = '<div style="color: #f5222d;">Error rendering diagram</div>';
+            }
+        }, 300); // Throttle to 300ms
+
+        // Toolbar functions
+        function showDirectionModal() {
+            document.getElementById('directionModal').style.display = 'block';
+            document.getElementById('modalBackdrop').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('directionModal').style.display = 'none';
+            document.getElementById('modalBackdrop').style.display = 'none';
+        }
+
+        function setDirection(direction) {
+            flowDirection = direction;
+            closeModal();
+            updateMermaidCode();
+        }
+
+        function toggleSubgraphMode() {
+            alert('Use the "Add Group" button in the shape panel to create groups. Then drag nodes into the group box.');
+        }
+
+        function clearCanvas() {
+            if (!confirm('Clear all nodes and connections?')) return;
+            
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = '<svg id="connectionSvg"></svg>';
+            nodes = [];
+            connections = [];
+            subgraphs = [];
+            nodeIdCounter = 0;
+            subgraphIdCounter = 0;
+            selectedNode = null;
+            selectedSubgraph = null;
+            document.getElementById('selectedInfo').textContent = 'None';
+            document.getElementById('nodeProperties').style.display = 'none';
+            updateConnections();
+            updateMermaidCode();
+        }
+
+        function toggleCodeView() {
+            const container = document.getElementById('codeContainer');
+            const icon = document.getElementById('toggleIcon');
+            
+            container.classList.toggle('collapsed');
+            icon.textContent = container.classList.contains('collapsed') ? '▲' : '▼';
+        }
+
+        function copyCode() {
+            const code = document.getElementById('mermaidCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('Mermaid code copied to clipboard!');
+            });
+        }
+
+        function exportSVG() {
+            const svgElement = document.querySelector('#mermaidPreview svg');
+            if (!svgElement) {
+                alert('No diagram to export');
+                return;
+            }
+            
+            const svgData = new XMLSerializer().serializeToString(svgElement);
+            const blob = new Blob([svgData], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mermaid-diagram.svg';
+            a.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // Canvas Events for Subgraph Creation
+        let subgraphStartPos = null;
+        let tempSubgraph = null;
+        
+        document.getElementById('canvas').addEventListener('mousedown', function(e) {
+            if (subgraphMode && e.target.id === 'canvas') {
+                subgraphStartPos = { x: e.offsetX, y: e.offsetY };
+                
+                tempSubgraph = document.createElement('div');
+                tempSubgraph.className = 'subgraph creating-subgraph';
+                tempSubgraph.style.left = subgraphStartPos.x + 'px';
+                tempSubgraph.style.top = subgraphStartPos.y + 'px';
+                tempSubgraph.style.width = '0px';
+                tempSubgraph.style.height = '0px';
+                
+                document.getElementById('canvas').appendChild(tempSubgraph);
+            }
+        });
+        
+        document.getElementById('canvas').addEventListener('mousemove', function(e) {
+            if (subgraphMode && subgraphStartPos && tempSubgraph) {
+                const currentX = e.offsetX;
+                const currentY = e.offsetY;
+                
+                const width = Math.abs(currentX - subgraphStartPos.x);
+                const height = Math.abs(currentY - subgraphStartPos.y);
+                const left = Math.min(currentX, subgraphStartPos.x);
+                const top = Math.min(currentY, subgraphStartPos.y);
+                
+                tempSubgraph.style.left = left + 'px';
+                tempSubgraph.style.top = top + 'px';
+                tempSubgraph.style.width = width + 'px';
+                tempSubgraph.style.height = height + 'px';
+            }
+        });
+        
+        document.getElementById('canvas').addEventListener('mouseup', function(e) {
+            if (subgraphMode && subgraphStartPos && tempSubgraph) {
+                const width = parseInt(tempSubgraph.style.width);
+                const height = parseInt(tempSubgraph.style.height);
+                
+                if (width > 50 && height > 50) {
+                    createSubgraph(
+                        parseInt(tempSubgraph.style.left),
+                        parseInt(tempSubgraph.style.top),
+                        width,
+                        height
+                    );
+                }
+                
+                tempSubgraph.remove();
+                tempSubgraph = null;
+                subgraphStartPos = null;
+            }
+        });
+        
+        function createQuickSubgraph() {
+            const title = prompt('Enter group name (e.g., VPC, Subnet, Cluster):', 'Group');
+            if (!title) return;
+            
+            const canvas = document.getElementById('canvas');
+            const container = document.querySelector('.canvas-container');
+            
+            // Position at center of viewport
+            const scrollLeft = container.scrollLeft;
+            const scrollTop = container.scrollTop;
+            const viewWidth = container.clientWidth;
+            const viewHeight = container.clientHeight;
+            
+            const x = scrollLeft + viewWidth / 2 - 150;
+            const y = scrollTop + viewHeight / 2 - 100;
+            
+            createSubgraph(x, y, 300, 200, title);
+        }
+        
+        function createSubgraph(x, y, width, height, title) {
+            const subgraphId = `subgraph${subgraphIdCounter++}`;
+            
+            if (!title) {
+                title = prompt('Enter group name (e.g., VPC, Subnet, Cluster):', 'Group');
+                if (!title) return;
+            }
+            
+            const subgraph = document.createElement('div');
+            subgraph.className = 'subgraph';
+            subgraph.id = subgraphId;
+            subgraph.style.left = x + 'px';
+            subgraph.style.top = y + 'px';
+            subgraph.style.width = width + 'px';
+            subgraph.style.height = height + 'px';
+            subgraph.style.zIndex = 1; // Below nodes
+            
+            const titleEl = document.createElement('div');
+            titleEl.className = 'subgraph-title';
+            titleEl.textContent = title;
+            subgraph.appendChild(titleEl);
+            
+            const deleteBtn = document.createElement('div');
+            deleteBtn.className = 'subgraph-delete';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.onclick = function(e) {
+                e.stopPropagation();
+                if (confirm(`Delete group "${title}"?`)) {
+                    subgraph.remove();
+                    subgraphs = subgraphs.filter(s => s.id !== subgraphId);
+                    if (selectedSubgraph && selectedSubgraph.id === subgraphId) {
+                        selectedSubgraph = null;
+                        document.getElementById('selectedInfo').textContent = 'None';
+                    }
+                    updateMermaidCode();
+                }
+            };
+            subgraph.appendChild(deleteBtn);
+            
+            const resizeHandle = document.createElement('div');
+            resizeHandle.className = 'subgraph-resize';
+            subgraph.appendChild(resizeHandle);
+            
+            subgraph.addEventListener('mousedown', handleSubgraphMouseDown);
+            subgraph.addEventListener('dblclick', editSubgraphTitle);
+            
+            // Add resize functionality
+            resizeHandle.addEventListener('mousedown', function(e) {
+                e.stopPropagation();
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const startWidth = parseInt(subgraph.style.width);
+                const startHeight = parseInt(subgraph.style.height);
+                
+                function resize(e) {
+                    const newWidth = startWidth + e.clientX - startX;
+                    const newHeight = startHeight + e.clientY - startY;
+                    subgraph.style.width = Math.max(150, newWidth) + 'px';
+                    subgraph.style.height = Math.max(100, newHeight) + 'px';
+                    updateMermaidCode();
+                }
+                
+                function stopResize() {
+                    document.removeEventListener('mousemove', resize);
+                    document.removeEventListener('mouseup', stopResize);
+                }
+                
+                document.addEventListener('mousemove', resize);
+                document.addEventListener('mouseup', stopResize);
+            });
+            
+            document.getElementById('canvas').appendChild(subgraph);
+            
+            subgraphs.push({
+                id: subgraphId,
+                title: title,
+                x: x,
+                y: y,
+                width: width,
+                height: height
+            });
+            
+            updateMermaidCode();
+        }
+        
+        function handleSubgraphMouseDown(e) {
+            if (e.target.classList.contains('subgraph-resize')) {
+                // Handle resize
+                return;
+            }
+            
+            if (subgraphMode) return;
+            
+            const subgraph = e.currentTarget;
+            selectSubgraph(subgraph);
+            
+            // Start dragging
+            isDragging = true;
+            draggedNode = subgraph;
+            const rect = subgraph.getBoundingClientRect();
+            offset.x = e.clientX - rect.left;
+            offset.y = e.clientY - rect.top;
+        }
+        
+        function selectSubgraph(subgraph) {
+            if (selectedSubgraph) {
+                selectedSubgraph.classList.remove('selected');
+            }
+            if (selectedNode) {
+                selectedNode.classList.remove('selected');
+            }
+            
+            selectedSubgraph = subgraph;
+            subgraph.classList.add('selected');
+            
+            const subgraphData = subgraphs.find(s => s.id === subgraph.id);
+            document.getElementById('selectedInfo').textContent = `Subgraph: ${subgraphData.title}`;
+            document.getElementById('nodeProperties').style.display = 'none';
+        }
+        
+        function editSubgraphTitle(e) {
+            const subgraph = e.currentTarget;
+            const subgraphData = subgraphs.find(s => s.id === subgraph.id);
+            const newTitle = prompt('Edit subgraph title:', subgraphData.title);
+            
+            if (newTitle) {
+                subgraphData.title = newTitle;
+                subgraph.querySelector('.subgraph-title').textContent = newTitle;
+                updateMermaidCode();
+            }
+        }
+        
+        // Initialize Resize Functionality
+        const resizeHandle = document.getElementById('resizeHandle');
+        const canvasContainer = document.getElementById('canvasContainer');
+        const previewArea = document.querySelector('.preview-area');
+        const editorArea = document.querySelector('.editor-area');
+        
+        let isResizing = false;
+        let startX = 0;
+        let startCanvasWidth = 0;
+        let startPreviewWidth = 0;
+        
+        resizeHandle.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            startX = e.clientX;
+            const canvasRect = canvasContainer.getBoundingClientRect();
+            const previewRect = previewArea.getBoundingClientRect();
+            startCanvasWidth = canvasRect.width;
+            startPreviewWidth = previewRect.width;
+            
+            // Add temporary overlay to prevent iframe interference
+            const overlay = document.createElement('div');
+            overlay.id = 'resize-overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.right = '0';
+            overlay.style.bottom = '0';
+            overlay.style.zIndex = '9999';
+            overlay.style.cursor = 'ew-resize';
+            document.body.appendChild(overlay);
+        });
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const deltaX = e.clientX - startX;
+            const editorAreaWidth = editorArea.offsetWidth;
+            
+            // Calculate new widths
+            let newCanvasWidth = startCanvasWidth + deltaX;
+            let newPreviewWidth = startPreviewWidth - deltaX;
+            
+            // Apply constraints
+            const minWidth = 300;
+            const maxCanvasWidth = editorAreaWidth - minWidth - 50; // 50px for margins
+            const maxPreviewWidth = editorAreaWidth - minWidth - 50;
+            
+            newCanvasWidth = Math.max(minWidth, Math.min(newCanvasWidth, maxCanvasWidth));
+            newPreviewWidth = Math.max(minWidth, Math.min(newPreviewWidth, maxPreviewWidth));
+            
+            // Calculate percentages
+            const totalWidth = newCanvasWidth + newPreviewWidth;
+            const canvasPercent = (newCanvasWidth / totalWidth) * 100;
+            const previewPercent = (newPreviewWidth / totalWidth) * 100;
+            
+            // Apply new widths
+            canvasContainer.style.flex = `0 0 ${canvasPercent}%`;
+            previewArea.style.width = `${previewPercent}%`;
+            
+            // Update connections after resize
+            updateConnections();
+        });
+        
+        document.addEventListener('mouseup', function() {
+            if (isResizing) {
+                isResizing = false;
+                // Remove overlay
+                const overlay = document.getElementById('resize-overlay');
+                if (overlay) overlay.remove();
+            }
+        });
+        
+        // Initialize
+        updateMermaidCode();
+    </script>
+</body>
+</html>
